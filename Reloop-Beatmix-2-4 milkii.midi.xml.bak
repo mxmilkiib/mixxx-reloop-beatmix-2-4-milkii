@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<MixxxControllerPreset mixxxVersion="" schemaVersion="1">
+    <info>
+        <n>Reloop-Beatmix-2-4 milkii</n>
+    </info>
+    <controller id="">
+        <scriptfiles>
+            <file filename="Reloop-Beatmix-2-4-scripts-milkii.js" functionprefix=""/>
+        </scriptfiles>
+        <controls/>
+        <outputs/>
+    </controller>
+</MixxxControllerPreset> 
