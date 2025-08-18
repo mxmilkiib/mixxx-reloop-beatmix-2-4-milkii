@@ -831,46 +831,7 @@
                     <script-binding/>
                 </options>
             </control>
-            <control>
-                <group>[EqualizerRack1_[Channel1]_Effect1]</group>
-                <key>parameter3</key>
-                <description>FILTERHIGH</description>
-                <status>0xB1</status>
-                <midino>0x11</midino>
-                <options>
-                    <normal/>
-                </options>
-            </control>
-            <control>
-                <group>[EqualizerRack1_[Channel2]_Effect1]</group>
-                <key>parameter3</key>
-                <description>FILTERHIGH</description>
-                <status>0xB2</status>
-                <midino>0x11</midino>
-                <options>
-                    <normal/>
-                </options>
-            </control>
-            <control>
-                <group>[EqualizerRack1_[Channel3]_Effect1]</group>
-                <key>parameter3</key>
-                <description>FILTERHIGH</description>
-                <status>0xB3</status>
-                <midino>0x11</midino>
-                <options>
-                    <normal/>
-                </options>
-            </control>
-            <control>
-                <group>[EqualizerRack1_[Channel4]_Effect1]</group>
-                <key>parameter3</key>
-                <description>FILTERHIGH</description>
-                <status>0xB4</status>
-                <midino>0x11</midino>
-                <options>
-                    <normal/>
-                </options>
-            </control>
+
             <control>
                 <group>[Sampler3]</group>
                 <key>ReloopBeatmix24.SamplerPad</key>
@@ -911,46 +872,7 @@
                     <script-binding/>
                 </options>
             </control>
-            <control>
-                <group>[EqualizerRack1_[Channel1]_Effect1]</group>
-                <key>parameter2</key>
-                <description>FILTERMID</description>
-                <status>0xB1</status>
-                <midino>0x12</midino>
-                <options>
-                    <normal/>
-                </options>
-            </control>
-            <control>
-                <group>[EqualizerRack1_[Channel2]_Effect1]</group>
-                <key>parameter2</key>
-                <description>FILTERMID</description>
-                <status>0xB2</status>
-                <midino>0x12</midino>
-                <options>
-                    <normal/>
-                </options>
-            </control>
-            <control>
-                <group>[EqualizerRack1_[Channel3]_Effect1]</group>
-                <key>parameter2</key>
-                <description>FILTERMID</description>
-                <status>0xB3</status>
-                <midino>0x12</midino>
-                <options>
-                    <normal/>
-                </options>
-            </control>
-            <control>
-                <group>[EqualizerRack1_[Channel4]_Effect1]</group>
-                <key>parameter2</key>
-                <description>FILTERMID</description>
-                <status>0xB4</status>
-                <midino>0x12</midino>
-                <options>
-                    <normal/>
-                </options>
-            </control>
+
             <control>
                 <group>[Sampler4]</group>
                 <key>ReloopBeatmix24.SamplerPad</key>
@@ -991,46 +913,7 @@
                     <script-binding/>
                 </options>
             </control>
-            <control>
-                <group>[EqualizerRack1_[Channel1]_Effect1]</group>
-                <key>parameter1</key>
-                <description>FILTERLOW</description>
-                <status>0xB1</status>
-                <midino>0x13</midino>
-                <options>
-                    <normal/>
-                </options>
-            </control>
-            <control>
-                <group>[EqualizerRack1_[Channel2]_Effect1]</group>
-                <key>parameter1</key>
-                <description>FILTERLOW</description>
-                <status>0xB2</status>
-                <midino>0x13</midino>
-                <options>
-                    <normal/>
-                </options>
-            </control>
-            <control>
-                <group>[EqualizerRack1_[Channel3]_Effect1]</group>
-                <key>parameter1</key>
-                <description>FILTERLOW</description>
-                <status>0xB3</status>
-                <midino>0x13</midino>
-                <options>
-                    <normal/>
-                </options>
-            </control>
-            <control>
-                <group>[EqualizerRack1_[Channel4]_Effect1]</group>
-                <key>parameter1</key>
-                <description>FILTERLOW</description>
-                <status>0xB4</status>
-                <midino>0x13</midino>
-                <options>
-                    <normal/>
-                </options>
-            </control>
+
             <control>
                 <group>[Sampler5]</group>
                 <key>ReloopBeatmix24.SamplerPad</key>
