@@ -66,6 +66,89 @@ const JogFlashCriticalTime = 15; // number of seconds to quickly blink at the en
 // ========================================================
 var ReloopBeatmix24 = {};
 
+// Configuration for FX handling
+ReloopBeatmix24.config = {
+    disableXmlFxBindings: true,  // Set to true to use JS handlers instead of XML bindings
+    twoFxUnitsMode: false        // false = 4 FX units (1 per deck), true = 2 FX units (FX1/2 shared)
+};
+
+// Process FX knob turn - called by the MIDI input handler
+function processFxKnob(channel, control, value, status, group) {
+    console.log(`MIDI IN: channel=${channel}, control=0x${control.toString(16)}, value=${value}, status=0x${status.toString(16)}`);
+    
+    if (ReloopBeatmix24.config.disableXmlFxBindings) {
+        // Log that we're in JS handler mode
+        console.log('Processing FX knob in JS handler mode');
+        
+        // Determine if this is a left or right side knob and if shift is pressed
+        const isLeftSide = (control >= 0x10 && control <= 0x12);  // Left knobs are CC 0x10-0x12
+        const isRightSide = (control >= 0x40 && control <= 0x42);  // Right knobs are CC 0x40-0x42
+        const isShifted = (status === 0xB2);  // 0xB1 = normal, 0xB2 = shifted
+        
+        if (!isLeftSide && !isRightSide) {
+            console.log(`Ignoring non-FX knob control: 0x${control.toString(16)}`);
+            return false;
+        }
+        
+        // Determine which FX unit and deck to control based on knob position and shift state
+        let fxUnit, deckNum;
+        
+        if (ReloopBeatmix24.config.twoFxUnitsMode) {
+            // 2-unit mode: Left knobs = FX1, Right knobs = FX2, shift changes deck 1/2 to 3/4
+            fxUnit = isLeftSide ? 1 : 2;
+            deckNum = isShifted ? (isLeftSide ? 3 : 4) : (isLeftSide ? 1 : 2);
+        } else {
+            // 4-unit mode: Left knobs = FX1/FX3, Right knobs = FX2/FX4, shift changes deck 1/2 to 3/4
+            fxUnit = isLeftSide ? (isShifted ? 3 : 1) : (isShifted ? 4 : 2);
+            deckNum = isLeftSide ? (isShifted ? 3 : 1) : (isShifted ? 4 : 2);
+        }
+        
+        // Determine which parameter to control based on the specific knob (0x10, 0x11, 0x12 or 0x40, 0x41, 0x42)
+        const knobIndex = isLeftSide ? (control - 0x10) : (control - 0x40);
+        const paramName = ['super1', 'super2', 'super3'][knobIndex];
+        
+        if (!paramName) {
+            console.log('Unknown knob control:', control.toString(16));
+            return false;
+        }
+        
+        // Build the group and parameter names
+        const deckGroup = `[Channel${deckNum}]`;
+        const unitGroup = `[EffectRack1_EffectUnit${fxUnit}]`;
+        const effectGroup = `[EffectRack1_EffectUnit${fxUnit}_Effect1]`;
+        
+        // Normalize the value (0-127 to 0-1)
+        const normalizedValue = value / 127;
+        
+        // Log the action
+        console.log(`FX Knob: ${isLeftSide ? 'Left' : 'Right'} ${knobIndex + 1}, ` +
+                   `Shift: ${isShifted}, ` +
+                   `FX Unit: ${fxUnit}, ` +
+                   `Deck: ${deckNum}, ` +
+                   `Param: ${paramName}, ` +
+                   `Value: ${normalizedValue.toFixed(2)}`);
+        
+        // Set the effect parameter
+        console.log(`Setting ${effectGroup}.${paramName} = ${normalizedValue}`);
+        const setSuccess = engine.setParameter(effectGroup, paramName, normalizedValue);
+        console.log(`Set parameter result: ${setSuccess}`);
+        
+        // Enable/disable the effect unit and effect based on the value
+        const enabled = normalizedValue > 0 ? 1 : 0;
+        console.log(`Enabling ${unitGroup} for ${deckGroup}: ${enabled}`);
+        console.log(`Enabling effect ${effectGroup}: ${enabled}`);
+        
+        const unitEnableSuccess = engine.setValue(unitGroup, `group_${deckGroup}_enable`, enabled);
+        const effectEnableSuccess = engine.setValue(effectGroup, 'enabled', enabled);
+        
+        console.log(`Unit enable result: ${unitEnableSuccess}, Effect enable result: ${effectEnableSuccess}`);
+        
+        // Mark the message as handled to prevent XML processing
+        return true;
+    }
+    return false;
+}
+
 const RateRangeArray = [0.08, 0.10, 0.12, 0.16];
 
 // Timers & long press state
@@ -214,6 +297,13 @@ ReloopBeatmix24.init = function(id, _debug) {
     // Set up beat-synchronized flashing for channel buttons
     ReloopBeatmix24.setupBeatFlashing();
 
+    // Register JS-based FX knob handlers (replaces XML bindings)
+    try {
+        ReloopBeatmix24.registerFxKnobHandlers();
+    } catch (e) {
+        try { console.log('Failed to register FX knob JS handlers', e); } catch (ee) {}
+    }
+
     // Delay controller status request to give time to the controller to be ready
     engine.beginTimer(1500,
         () => {
@@ -228,9 +318,16 @@ ReloopBeatmix24.init = function(id, _debug) {
     console.log(`Reloop Beatmix: ${ id } initialized.`);
 };
 
+// Allow runtime toggle of 2-unit vs 4-unit mode
+ReloopBeatmix24.setTwoFxUnitsMode = function(enabled) {
+    ReloopBeatmix24.config = ReloopBeatmix24.config || {};
+    ReloopBeatmix24.config.twoFxUnitsMode = !!enabled;
+    try { console.log(`Two FX Units Mode: ${ReloopBeatmix24.config.twoFxUnitsMode ? 'ON (Units 1/2 only)' : 'OFF (Units 1..4 with Shift)'}`); } catch (e) {}
+};
+
 ReloopBeatmix24.shutdown = function() {
-    ReloopBeatmix24.TurnLEDsOff(); // Turn off all LEDs
     ReloopBeatmix24.cleanupBeatFlashing(); // Clean up beat connections
+    ReloopBeatmix24.TurnLEDsOff(); // Turn off all LEDs
     console.log(`Reloop Beatmix: ${ ReloopBeatmix24.id } shut down.`);
 };
 
@@ -438,7 +535,6 @@ ReloopBeatmix24.AllJogLEDsToggle = function(deck, state, step) {
         midi.sendShortMsg(deck, j, state);
     }
 };
-
 ReloopBeatmix24.deckLoaded = function(value, group, _control) {
     let i;
     switch (group.substr(1, 7)) {
@@ -456,18 +552,6 @@ ReloopBeatmix24.deckLoaded = function(value, group, _control) {
                         JogBaseLed - (JogLedLit[group] + JogLedNumber - 1) %
                         JogLedNumber, OFF);
                     delete JogLedLit[group];
-                }
-            }
-        }
-        break;
-    case "Sampler":
-        {
-            const samplerChan = parseInt(samplerRegEx.exec(group)[1]);
-            if (samplerChan <= 8) { // We only handle 8 samplers (1 per pad)
-                for (i = 0x91; i <= 0x94; i++) {
-                // PAD1 Mode A
-                    midi.sendShortMsg(i, 0x08 - 1 + samplerChan, value ?
-                        RED : OFF);
                     // SHIFT+PAD1 Mode A
                     midi.sendShortMsg(i, 0x48 - 1 + samplerChan, value ?
                         RED : OFF);
@@ -485,7 +569,6 @@ ReloopBeatmix24.deckLoaded = function(value, group, _control) {
         break;
     }
 };
-
 ReloopBeatmix24.SamplerPlay = function(value, group, _control) {
     const samplerChan = parseInt(samplerRegEx.exec(group)[1]);
     if (samplerChan <= 8) { // We only handle 8 samplers (1 per pad)
@@ -694,12 +777,150 @@ ReloopBeatmix24.ActivateFx = function(channel, control, value, status, group) {
 };
 
 ReloopBeatmix24.FxKnobTurn = function(channel, control, value, status, group) {
+    // Single-effect mode: each knob controls the target effect's meta knob
     if (FxMode === 1) {
-        const parameter = control;
-        engine.setParameter(group, "parameter" + parameter.toString(),
-            script.absoluteLin(value, 0, 1));
+        // Normalize 0..127 to 0..1
+        const norm = script.absoluteLin(value, 0, 1);
+        // If we're using JS-registered MIDI handlers for FX knobs, ignore XML-bound callbacks
+        if (ReloopBeatmix24.config && ReloopBeatmix24.config.disableXmlFxBindings) {
+            try {
+                console.log(`FxKnobTurn(XML ignored): ch=${channel}, ctrl=0x${control.toString(16)}, val=${value}, status=0x${status.toString(16)}, group=${group}`);
+            } catch (e) {}
+            return;
+        }
+        try {
+            console.log(`FxKnobTurn: ch=${channel}, ctrl=0x${control.toString(16)}, val=${value}, norm=${norm.toFixed(3)}, status=0x${status.toString(16)}, group=${group}`);
+        } catch (e) {}
+
+        // Set the meta knob on the addressed effect (group is EffectUnitX_EffectY)
+        engine.setParameter(group, "meta", norm);
+
+        // Auto enable/disable behavior per deck and unit
+        // Determine EffectUnit number from group, e.g. "[EffectRack1_EffectUnit1_Effect1]"
+        const unitMatch = group.match(/\[EffectRack1_EffectUnit(\d+)_/);
+        const unitNum = unitMatch ? parseInt(unitMatch[1]) : 1;
+
+        // Determine deck from side (control range) and shift state (status 0xB1 vs 0xB2)
+        // - Left knobs (0x01..0x03) => base deck 1; Right knobs (0x41..0x43) => base deck 2
+        // - Shifted channel uses status 0xB2, which targets decks 3/4 respectively
+        let deck = (control >= 0x40) ? 2 : 1; // 2 for right side, 1 for left side
+        if (status === 0xB2) {
+            deck += 2; // Shift held -> decks 3/4
+        }
+        const deckGroup = `[Channel${deck}]`;
+
+        const unitGroup = `[EffectRack1_EffectUnit${unitNum}]`;
+        const enabled = norm > 0 ? 1 : 0;
+
+        // Enable/disable the unit for the addressed deck
+        engine.setValue(unitGroup, `group_${deckGroup}_enable`, enabled);
+        // Also toggle the effect itself, so it truly turns off at 0 and back on when increased
+        engine.setValue(group, "enabled", enabled);
+        try {
+            console.log(`FxKnobTurn: unitGroup=${unitGroup}, deckGroup=${deckGroup}, enabled=${enabled}`);
+        } catch (e) {}
     }
     // Nothing in multi-effect mode
+};
+
+// Register MIDI handlers for FX knobs (replaces XML bindings)
+ReloopBeatmix24.registerFxKnobHandlers = function() {
+    // Configuration - ensure it's initialized only once
+    if (typeof ReloopBeatmix24.config === 'undefined') {
+        ReloopBeatmix24.config = {
+            twoFxUnitsMode: false,  // When true: left=FX1, right=FX2; Shift only changes deck
+            disableXmlFxBindings: true  // Ignore XML FxKnobTurn calls to avoid double-handling
+        };
+        console.log('FX Knob Handlers: Initialized config with disableXmlFxBindings=true');
+    }
+
+    // Helper to process FX knob turns
+    const processFxKnob = function(unit, slot, deck, value) {
+        const norm = script.absoluteLin(value, 0, 1);
+        const effectGroup = `[EffectRack1_EffectUnit${unit}_Effect${slot}]`;
+        const unitGroup = `[EffectRack1_EffectUnit${unit}`;
+        const deckGroup = `[Channel${deck}`;
+        const enabled = norm > 0 ? 1 : 0;
+        
+        try {
+            console.log(`FX Knob: unit=${unit} slot=${slot} deck=${deck} value=${value} norm=${norm.toFixed(3)} enable=${enabled}`);
+            console.log(`  Setting: ${effectGroup} meta = ${norm}`);
+            console.log(`  Setting: ${unitGroup} [Channel${deck}]_enable = ${enabled}`);
+            console.log(`  Setting: ${effectGroup} enabled = ${enabled}`);
+            
+            // Debug: Print current values before setting
+            console.log(`  Current: ${effectGroup} meta = ${engine.getValue(effectGroup, 'meta')}`);
+            console.log(`  Current: ${unitGroup} [Channel${deck}]_enable = ${engine.getValue(unitGroup, `[Channel${deck}]_enable`)}`);
+            console.log(`  Current: ${effectGroup} enabled = ${engine.getValue(effectGroup, 'enabled')}`);
+        } catch (e) {
+            console.log('Error in processFxKnob debug:', e);
+        }
+        
+        try {
+            // Set effect meta parameter and enable states
+            engine.setParameter(effectGroup, "meta", norm);
+            engine.setValue(unitGroup, `[Channel${deck}]_enable`, enabled);
+            engine.setValue(effectGroup, "enabled", enabled);
+            console.log('  Successfully set effect parameters');
+        } catch (e) {
+            console.log('Error setting effect parameters:', e);
+        }
+    };
+
+    // Create handler for a specific knob (left/right, slot 1-3)
+    const createKnobHandler = function(side, slot, statusByte, control) {
+        midi.makeInputHandler(statusByte, control, (channel, _control, value, status) => {
+            const shifted = (control >= 0x41);  // Shift is indicated by MIDI numbers 0x41-0x43
+            const leftSide = (side === 'left');
+            
+            // Determine deck and unit
+            let deck, unit;
+            
+            if (leftSide) {
+                // Left side knobs (FX1/FX3)
+                deck = shifted ? 3 : 1;
+                unit = shifted ? 3 : 1;
+            } else {
+                // Right side knobs (FX2/FX4)
+                deck = shifted ? 4 : 2;
+                unit = shifted ? 4 : 2;  // Right side: FX2 (no shift), FX4 (with shift)
+            }
+            
+            // In 2-unit mode, map all left knobs to FX1 and right knobs to FX2
+            if (ReloopBeatmix24.config.twoFxUnitsMode) {
+                unit = leftSide ? 1 : 2;
+            }
+            
+            // Map knob number to effect slot: knob 1 -> effect 1, knob 2 -> effect 2, knob 3 -> effect 3
+            const effectSlot = slot;
+            processFxKnob(unit, effectSlot, deck, value);
+            return true; // Consume the message
+        });
+    };
+
+    // Left side knobs (status 0xB1, MIDI 0x01, 0x02, 0x03)
+    createKnobHandler('left', 1, 0xB1, 0x01);  // Left knob 1
+    createKnobHandler('left', 2, 0xB1, 0x02);  // Left knob 2
+    createKnobHandler('left', 3, 0xB1, 0x03);  // Left knob 3
+    
+    // Left side knobs with Shift (status 0xB1, MIDI 0x41, 0x42, 0x43)
+    createKnobHandler('left', 1, 0xB1, 0x41);  // Shift + Left knob 1
+    createKnobHandler('left', 2, 0xB1, 0x42);  // Shift + Left knob 2
+    createKnobHandler('left', 3, 0xB1, 0x43);  // Shift + Left knob 3
+
+    // Right side knobs (status 0xB2, MIDI 0x01, 0x02, 0x03)
+    createKnobHandler('right', 1, 0xB2, 0x01);  // Right knob 1
+    createKnobHandler('right', 2, 0xB2, 0x02);  // Right knob 2
+    createKnobHandler('right', 3, 0xB2, 0x03);  // Right knob 3
+    
+    // Right side knobs with Shift (status 0xB2, MIDI 0x41, 0x42, 0x43)
+    createKnobHandler('right', 1, 0xB2, 0x41);  // Shift + Right knob 1
+    createKnobHandler('right', 2, 0xB2, 0x42);  // Shift + Right knob 2
+    createKnobHandler('right', 3, 0xB2, 0x43);  // Shift + Right knob 3
+
+    try { 
+        console.log('ReloopBeatmix24: FX knob handlers registered'); 
+    } catch (e) {}
 };
 
 ReloopBeatmix24.ShiftFxKnobTurn = function(channel, control, value, status,
