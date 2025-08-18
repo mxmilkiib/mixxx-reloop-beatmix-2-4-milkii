@@ -68,86 +68,73 @@ var ReloopBeatmix24 = {};
 
 // Configuration for FX handling
 ReloopBeatmix24.config = {
-    disableXmlFxBindings: true,  // Set to true to use JS handlers instead of XML bindings
     twoFxUnitsMode: false        // false = 4 FX units (1 per deck), true = 2 FX units (FX1/2 shared)
 };
 
-// Process FX knob turn - called by the MIDI input handler
-function processFxKnob(channel, control, value, status, group) {
-    console.log(`MIDI IN: channel=${channel}, control=0x${control.toString(16)}, value=${value}, status=0x${status.toString(16)}`);
+// Track effect states for each deck to determine when to disable deck
+ReloopBeatmix24.deckEffectStates = {
+    1: { 1: 0, 2: 0, 3: 0 }, // deck 1: effects 1, 2, 3
+    2: { 1: 0, 2: 0, 3: 0 }, // deck 2: effects 1, 2, 3
+    3: { 1: 0, 2: 0, 3: 0 }, // deck 3: effects 1, 2, 3
+    4: { 1: 0, 2: 0, 3: 0 }  // deck 4: effects 1, 2, 3
+};
+
+// Helper function to check if all effects for a deck are at 0
+ReloopBeatmix24.shouldDisableDeck = function(deck, unit) {
+    const deckState = ReloopBeatmix24.deckEffectStates[deck];
+    return deckState[1] === 0 && deckState[2] === 0 && deckState[3] === 0;
+};
+
+// Helper function to update deck effect state and enable/disable deck accordingly
+ReloopBeatmix24.updateDeckEffectState = function(deck, unit, slot, value) {
+    ReloopBeatmix24.deckEffectStates[deck][slot] = value;
+    const unitGroup = `[EffectRack1_EffectUnit${unit}]`;
+    const deckGroup = `[Channel${deck}]`;
     
-    if (ReloopBeatmix24.config.disableXmlFxBindings) {
-        // Log that we're in JS handler mode
-        console.log('Processing FX knob in JS handler mode');
-        
-        // Determine if this is a left or right side knob and if shift is pressed
-        const isLeftSide = (control >= 0x10 && control <= 0x12);  // Left knobs are CC 0x10-0x12
-        const isRightSide = (control >= 0x40 && control <= 0x42);  // Right knobs are CC 0x40-0x42
-        const isShifted = (status === 0xB2);  // 0xB1 = normal, 0xB2 = shifted
-        
-        if (!isLeftSide && !isRightSide) {
-            console.log(`Ignoring non-FX knob control: 0x${control.toString(16)}`);
-            return false;
-        }
-        
-        // Determine which FX unit and deck to control based on knob position and shift state
-        let fxUnit, deckNum;
-        
-        if (ReloopBeatmix24.config.twoFxUnitsMode) {
-            // 2-unit mode: Left knobs = FX1, Right knobs = FX2, shift changes deck 1/2 to 3/4
-            fxUnit = isLeftSide ? 1 : 2;
-            deckNum = isShifted ? (isLeftSide ? 3 : 4) : (isLeftSide ? 1 : 2);
-        } else {
-            // 4-unit mode: Left knobs = FX1/FX3, Right knobs = FX2/FX4, shift changes deck 1/2 to 3/4
-            fxUnit = isLeftSide ? (isShifted ? 3 : 1) : (isShifted ? 4 : 2);
-            deckNum = isLeftSide ? (isShifted ? 3 : 1) : (isShifted ? 4 : 2);
-        }
-        
-        // Determine which parameter to control based on the specific knob (0x10, 0x11, 0x12 or 0x40, 0x41, 0x42)
-        const knobIndex = isLeftSide ? (control - 0x10) : (control - 0x40);
-        const paramName = ['super1', 'super2', 'super3'][knobIndex];
-        
-        if (!paramName) {
-            console.log('Unknown knob control:', control.toString(16));
-            return false;
-        }
-        
-        // Build the group and parameter names
-        const deckGroup = `[Channel${deckNum}]`;
-        const unitGroup = `[EffectRack1_EffectUnit${fxUnit}]`;
-        const effectGroup = `[EffectRack1_EffectUnit${fxUnit}_Effect1]`;
-        
-        // Normalize the value (0-127 to 0-1)
-        const normalizedValue = value / 127;
-        
-        // Log the action
-        console.log(`FX Knob: ${isLeftSide ? 'Left' : 'Right'} ${knobIndex + 1}, ` +
-                   `Shift: ${isShifted}, ` +
-                   `FX Unit: ${fxUnit}, ` +
-                   `Deck: ${deckNum}, ` +
-                   `Param: ${paramName}, ` +
-                   `Value: ${normalizedValue.toFixed(2)}`);
-        
-        // Set the effect parameter
-        console.log(`Setting ${effectGroup}.${paramName} = ${normalizedValue}`);
-        const setSuccess = engine.setParameter(effectGroup, paramName, normalizedValue);
-        console.log(`Set parameter result: ${setSuccess}`);
-        
-        // Enable/disable the effect unit and effect based on the value
-        const enabled = normalizedValue > 0 ? 1 : 0;
-        console.log(`Enabling ${unitGroup} for ${deckGroup}: ${enabled}`);
-        console.log(`Enabling effect ${effectGroup}: ${enabled}`);
-        
-        const unitEnableSuccess = engine.setValue(unitGroup, `group_${deckGroup}_enable`, enabled);
-        const effectEnableSuccess = engine.setValue(effectGroup, 'enabled', enabled);
-        
-        console.log(`Unit enable result: ${unitEnableSuccess}, Effect enable result: ${effectEnableSuccess}`);
-        
-        // Mark the message as handled to prevent XML processing
-        return true;
+    // Only disable deck if ALL effects are at 0
+    if (ReloopBeatmix24.shouldDisableDeck(deck, unit)) {
+        engine.setValue(unitGroup, `group_${deckGroup}_enable`, 0);
+        console.log(`Deck ${deck} disabled: all effects at 0`);
+    } else {
+        // Enable deck if any effect is above 0
+        engine.setValue(unitGroup, `group_${deckGroup}_enable`, 1);
+        console.log(`Deck ${deck} enabled: effects at [${ReloopBeatmix24.deckEffectStates[deck][1].toFixed(3)}, ${ReloopBeatmix24.deckEffectStates[deck][2].toFixed(3)}, ${ReloopBeatmix24.deckEffectStates[deck][3].toFixed(3)}]`);
     }
-    return false;
-}
+};
+
+// Helper function to read current effect states and update tracking
+ReloopBeatmix24.syncEffectStates = function(deck, unit) {
+    const unitGroup = `[EffectRack1_EffectUnit${unit}]`;
+    const deckGroup = `[Channel${deck}]`;
+    
+    // Read current meta knob values for all effects
+    for (let slot = 1; slot <= 3; slot++) {
+        const effectGroup = `[EffectRack1_EffectUnit${unit}_Effect${slot}]`;
+        const effectLoaded = engine.getValue(effectGroup, "loaded");
+        if (effectLoaded) {
+            const currentValue = engine.getValue(effectGroup, "meta");
+            ReloopBeatmix24.deckEffectStates[deck][slot] = currentValue;
+        } else {
+            ReloopBeatmix24.deckEffectStates[deck][slot] = 0;
+        }
+    }
+    
+    // Update deck enable state based on current effect states
+    if (ReloopBeatmix24.shouldDisableDeck(deck, unit)) {
+        engine.setValue(unitGroup, `group_${deckGroup}_enable`, 0);
+    } else {
+        engine.setValue(unitGroup, `group_${deckGroup}_enable`, 1);
+    }
+};
+
+// Debug function to show current effect states
+ReloopBeatmix24.debugEffectStates = function() {
+    console.log("Current Effect States:");
+    for (let deck = 1; deck <= 4; deck++) {
+        const deckState = ReloopBeatmix24.deckEffectStates[deck];
+        console.log(`Deck ${deck}: Effect1=${deckState[1].toFixed(3)}, Effect2=${deckState[2].toFixed(3)}, Effect3=${deckState[3].toFixed(3)}`);
+    }
+};
 
 const RateRangeArray = [0.08, 0.10, 0.12, 0.16];
 
@@ -158,8 +145,7 @@ const loadButtonLongPressed = [];
 const FxModeTimers = [];
 const FxModeLongPressed = [];
 
-// A variable to store previous value of some connectControls
-const previousValue = [];
+
 
 // Trax mode
 // 1 for playlist mode
@@ -167,9 +153,8 @@ const previousValue = [];
 // 3 for preview mode
 let traxMode = 2;
 
-// Effects mode
-// 1 for single effect mode (1 effect controlled in each EffectUnit)
-// 2 for multi-effect mode (3 effects controlled in each EffectUnit)
+// Effects mode (used by ActivateFx function)
+// 1 for single effect mode, 2 for multi-effect mode
 // SHIFT + long press on pitchbend +/- to change mode
 let FxMode = 1; // Single effect mode by default
 
@@ -190,7 +175,6 @@ const JogBlinking = [];
 const ON = 0x7F;
 const OFF = 0x00;
 const RED = 0x7F;
-//const BLUE = 0x55;
 const VIOLET = 0x2A;
 const SHIFT = 0x40;
 const DOWN = 0x7F;
@@ -203,6 +187,34 @@ const ControllerStatusSysex = [0xF0, 0x00, 0x20, 0x7F, 0x03, 0x01, 0xF7];
 // Some useful regex
 const channelRegEx = /\[Channel(\d+)\]/;
 const samplerRegEx = /\[Sampler(\d+)\]/;
+
+// Initialize effects for all decks
+ReloopBeatmix24.initializeEffects = function() {
+    // For each effect unit, ensure it has effects loaded in all three slots
+    for (let unit = 1; unit <= 4; unit++) {
+        const unitGroup = `[EffectRack1_EffectUnit${unit}]`;
+        
+        // Load effects into all three slots
+        for (let slot = 1; slot <= 3; slot++) {
+            const effectGroup = `[EffectRack1_EffectUnit${unit}_Effect${slot}]`;
+            
+            // Check if effect is loaded
+            const effectLoaded = engine.getValue(effectGroup, "loaded");
+            if (!effectLoaded) {
+                // Load a default effect (Filter is usually available) into the specific slot
+                engine.setValue(effectGroup, "effect_selector", "Filter");
+            }
+        }
+        
+        // Start with effect units disabled for all channels and sync effect states
+        for (let deck = 1; deck <= 4; deck++) {
+            const deckGroup = `[Channel${deck}]`;
+            engine.setValue(unitGroup, `group_${deckGroup}_enable`, 0);
+            // Sync effect states for this deck/unit combination
+            ReloopBeatmix24.syncEffectStates(deck, unit);
+        }
+    }
+};
 
 // Initialise and shutdown stuff.
 // ========================================================
@@ -301,7 +313,14 @@ ReloopBeatmix24.init = function(id, _debug) {
     try {
         ReloopBeatmix24.registerFxKnobHandlers();
     } catch (e) {
-        try { console.log('Failed to register FX knob JS handlers', e); } catch (ee) {}
+        // Silently handle registration errors
+    }
+    
+    // Initialize effects for all decks
+    try {
+        ReloopBeatmix24.initializeEffects();
+    } catch (e) {
+        console.log(`Error initializing effects: ${e.message}`);
     }
 
     // Delay controller status request to give time to the controller to be ready
@@ -322,7 +341,7 @@ ReloopBeatmix24.init = function(id, _debug) {
 ReloopBeatmix24.setTwoFxUnitsMode = function(enabled) {
     ReloopBeatmix24.config = ReloopBeatmix24.config || {};
     ReloopBeatmix24.config.twoFxUnitsMode = !!enabled;
-    try { console.log(`Two FX Units Mode: ${ReloopBeatmix24.config.twoFxUnitsMode ? 'ON (Units 1/2 only)' : 'OFF (Units 1..4 with Shift)'}`); } catch (e) {}
+
 };
 
 ReloopBeatmix24.shutdown = function() {
@@ -445,7 +464,7 @@ ReloopBeatmix24.LoadButtonEject = function(group) {
     delete loadButtonTimers[group];
 };
 
-ReloopBeatmix24.LoadButton = function(channel, control, value, status, group) {
+ReloopBeatmix24.LoadButton = function(_channel, _control, value, _status, group) {
     if (value === DOWN) {
         loadButtonLongPressed[group] = false;
         loadButtonTimers[group] = engine.beginTimer(1000,
@@ -580,7 +599,7 @@ ReloopBeatmix24.SamplerPlay = function(value, group, _control) {
         }
 
         // We need to switch off pad lights before changing color otherwise
-        // VIOLET to RED transition does not work well. (???)
+        // VIOLET to RED transition does not work well
         for (let i = 0x91; i <= 0x94; i++) {
             // PAD1 Mode A
             midi.sendShortMsg(i, 0x08 - 1 + samplerChan, OFF);
@@ -751,7 +770,7 @@ ReloopBeatmix24.FxModeCallback = function(group, mode) {
 // This function activate Fx Unit 1 or 2 for the selected Channel on short press
 // and toggle Fx Mode on long press (>1s)
 // It is mapped to SHIFT + PITCHBEND+/- (FX1 and FX2)
-ReloopBeatmix24.ActivateFx = function(channel, control, value, status, group) {
+ReloopBeatmix24.ActivateFx = function(_channel, control, value, _status, group) {
     // Calculate Fx num based on midi control (0x66 for Fx1 and 0x67 for Fx2)
     const FxNum = control - 0x65;
     if (value === DOWN) {
@@ -776,114 +795,75 @@ ReloopBeatmix24.ActivateFx = function(channel, control, value, status, group) {
     }
 };
 
-ReloopBeatmix24.FxKnobTurn = function(channel, control, value, status, group) {
-    // Single-effect mode: each knob controls the target effect's meta knob
-    if (FxMode === 1) {
-        // Normalize 0..127 to 0..1
-        const norm = script.absoluteLin(value, 0, 1);
-        // If we're using JS-registered MIDI handlers for FX knobs, ignore XML-bound callbacks
-        if (ReloopBeatmix24.config && ReloopBeatmix24.config.disableXmlFxBindings) {
-            try {
-                console.log(`FxKnobTurn(XML ignored): ch=${channel}, ctrl=0x${control.toString(16)}, val=${value}, status=0x${status.toString(16)}, group=${group}`);
-            } catch (e) {}
-            return;
-        }
-        try {
-            console.log(`FxKnobTurn: ch=${channel}, ctrl=0x${control.toString(16)}, val=${value}, norm=${norm.toFixed(3)}, status=0x${status.toString(16)}, group=${group}`);
-        } catch (e) {}
 
-        // Set the meta knob on the addressed effect (group is EffectUnitX_EffectY)
-        engine.setParameter(group, "meta", norm);
-
-        // Auto enable/disable behavior per deck and unit
-        // Determine EffectUnit number from group, e.g. "[EffectRack1_EffectUnit1_Effect1]"
-        const unitMatch = group.match(/\[EffectRack1_EffectUnit(\d+)_/);
-        const unitNum = unitMatch ? parseInt(unitMatch[1]) : 1;
-
-        // Determine deck from side (control range) and shift state (status 0xB1 vs 0xB2)
-        // - Left knobs (0x01..0x03) => base deck 1; Right knobs (0x41..0x43) => base deck 2
-        // - Shifted channel uses status 0xB2, which targets decks 3/4 respectively
-        let deck = (control >= 0x40) ? 2 : 1; // 2 for right side, 1 for left side
-        if (status === 0xB2) {
-            deck += 2; // Shift held -> decks 3/4
-        }
-        const deckGroup = `[Channel${deck}]`;
-
-        const unitGroup = `[EffectRack1_EffectUnit${unitNum}]`;
-        const enabled = norm > 0 ? 1 : 0;
-
-        // Enable/disable the unit for the addressed deck
-        engine.setValue(unitGroup, `group_${deckGroup}_enable`, enabled);
-        // Also toggle the effect itself, so it truly turns off at 0 and back on when increased
-        engine.setValue(group, "enabled", enabled);
-        try {
-            console.log(`FxKnobTurn: unitGroup=${unitGroup}, deckGroup=${deckGroup}, enabled=${enabled}`);
-        } catch (e) {}
-    }
-    // Nothing in multi-effect mode
-};
 
 // Register MIDI handlers for FX knobs (replaces XML bindings)
 ReloopBeatmix24.registerFxKnobHandlers = function() {
     // Configuration - ensure it's initialized only once
     if (typeof ReloopBeatmix24.config === 'undefined') {
         ReloopBeatmix24.config = {
-            twoFxUnitsMode: false,  // When true: left=FX1, right=FX2; Shift only changes deck
-            disableXmlFxBindings: true  // Ignore XML FxKnobTurn calls to avoid double-handling
+            twoFxUnitsMode: false  // When true: left=FX1, right=FX2; Shift only changes deck
         };
-        console.log('FX Knob Handlers: Initialized config with disableXmlFxBindings=true');
     }
 
+
+
     // Helper to process FX knob turns
-    const processFxKnob = function(unit, slot, deck, value) {
+    const processFxKnob = function(unit, slot, deck, value, control) {
         const norm = script.absoluteLin(value, 0, 1);
+        // Use the proper effects framework structure - each knob controls a different effect slot
         const effectGroup = `[EffectRack1_EffectUnit${unit}_Effect${slot}]`;
-        const unitGroup = `[EffectRack1_EffectUnit${unit}`;
-        const deckGroup = `[Channel${deck}`;
-        const enabled = norm > 0 ? 1 : 0;
+        const unitGroup = `[EffectRack1_EffectUnit${unit}]`;
+        const deckGroup = `[Channel${deck}]`;
         
         try {
-            console.log(`FX Knob: unit=${unit} slot=${slot} deck=${deck} value=${value} norm=${norm.toFixed(3)} enable=${enabled}`);
-            console.log(`  Setting: ${effectGroup} meta = ${norm}`);
-            console.log(`  Setting: ${unitGroup} [Channel${deck}]_enable = ${enabled}`);
-            console.log(`  Setting: ${effectGroup} enabled = ${enabled}`);
+            // Check if the effect exists and is loaded
+            const effectLoaded = engine.getValue(effectGroup, "loaded");
             
-            // Debug: Print current values before setting
-            console.log(`  Current: ${effectGroup} meta = ${engine.getValue(effectGroup, 'meta')}`);
-            console.log(`  Current: ${unitGroup} [Channel${deck}]_enable = ${engine.getValue(unitGroup, `[Channel${deck}]_enable`)}`);
-            console.log(`  Current: ${effectGroup} enabled = ${engine.getValue(effectGroup, 'enabled')}`);
+            if (effectLoaded) {
+                // Set the meta knob control to move the UI meta knob
+                engine.setParameter(effectGroup, "meta", norm);
+                // Enable the individual effect
+                engine.setValue(effectGroup, "enabled", norm > 0 ? 1 : 0);
+                // Update deck effect state and enable/disable deck accordingly
+                ReloopBeatmix24.updateDeckEffectState(deck, unit, slot, norm);
+            } else {
+                // Try to load a default effect (e.g., Filter) into the specific slot
+                engine.setValue(effectGroup, "effect_selector", "Filter");
+                // Wait a bit and try again
+                engine.beginTimer(100, () => {
+                    const newEffectLoaded = engine.getValue(effectGroup, "loaded");
+                    if (newEffectLoaded) {
+                        engine.setParameter(effectGroup, "meta", norm);
+                        engine.setValue(effectGroup, "enabled", norm > 0 ? 1 : 0);
+                        // Update deck effect state and enable/disable deck accordingly
+                        ReloopBeatmix24.updateDeckEffectState(deck, unit, slot, norm);
+                    }
+                }, true);
+            }
         } catch (e) {
-            console.log('Error in processFxKnob debug:', e);
-        }
-        
-        try {
-            // Set effect meta parameter and enable states
-            engine.setParameter(effectGroup, "meta", norm);
-            engine.setValue(unitGroup, `[Channel${deck}]_enable`, enabled);
-            engine.setValue(effectGroup, "enabled", enabled);
-            console.log('  Successfully set effect parameters');
-        } catch (e) {
-            console.log('Error setting effect parameters:', e);
+            // Log errors instead of silently handling them
+            print(`Error in processFxKnob: ${e.message}`);
         }
     };
 
     // Create handler for a specific knob (left/right, slot 1-3)
     const createKnobHandler = function(side, slot, statusByte, control) {
         midi.makeInputHandler(statusByte, control, (channel, _control, value, status) => {
-            const shifted = (control >= 0x41);  // Shift is indicated by MIDI numbers 0x41-0x43
+            const shifted = (status === 0xB2);
             const leftSide = (side === 'left');
             
             // Determine deck and unit
             let deck, unit;
             
             if (leftSide) {
-                // Left side knobs (FX1/FX3)
-                deck = shifted ? 3 : 1;
-                unit = shifted ? 3 : 1;
+                // Left side knobs: affect decks 1 and 2
+                deck = shifted ? 2 : 1;
+                unit = shifted ? 2 : 1;
             } else {
-                // Right side knobs (FX2/FX4)
-                deck = shifted ? 4 : 2;
-                unit = shifted ? 4 : 2;  // Right side: FX2 (no shift), FX4 (with shift)
+                // Right side knobs: affect decks 3 and 4
+                deck = shifted ? 4 : 3;
+                unit = shifted ? 4 : 3;
             }
             
             // In 2-unit mode, map all left knobs to FX1 and right knobs to FX2
@@ -891,36 +871,32 @@ ReloopBeatmix24.registerFxKnobHandlers = function() {
                 unit = leftSide ? 1 : 2;
             }
             
-            // Map knob number to effect slot: knob 1 -> effect 1, knob 2 -> effect 2, knob 3 -> effect 3
-            const effectSlot = slot;
-            processFxKnob(unit, effectSlot, deck, value);
+            processFxKnob(unit, slot, deck, value, control);
             return true; // Consume the message
         });
     };
 
-    // Left side knobs (status 0xB1, MIDI 0x01, 0x02, 0x03)
-    createKnobHandler('left', 1, 0xB1, 0x01);  // Left knob 1
-    createKnobHandler('left', 2, 0xB1, 0x02);  // Left knob 2
-    createKnobHandler('left', 3, 0xB1, 0x03);  // Left knob 3
+    // Left side knobs (CC 0x01, 0x02, 0x03) - affect decks 1 and 2
+    createKnobHandler('left', 1, 0xB1, 0x01);  // Left knob 1 - deck 1
+    createKnobHandler('left', 2, 0xB1, 0x02);  // Left knob 2 - deck 1
+    createKnobHandler('left', 3, 0xB1, 0x03);  // Left knob 3 - deck 1
     
-    // Left side knobs with Shift (status 0xB1, MIDI 0x41, 0x42, 0x43)
-    createKnobHandler('left', 1, 0xB1, 0x41);  // Shift + Left knob 1
-    createKnobHandler('left', 2, 0xB1, 0x42);  // Shift + Left knob 2
-    createKnobHandler('left', 3, 0xB1, 0x43);  // Shift + Left knob 3
+    // Left side knobs with Shift (status 0xB2) - affect deck 2
+    createKnobHandler('left', 1, 0xB2, 0x01);  // Shift + Left knob 1 - deck 2
+    createKnobHandler('left', 2, 0xB2, 0x02);  // Shift + Left knob 2 - deck 2
+    createKnobHandler('left', 3, 0xB2, 0x03);  // Shift + Left knob 3 - deck 2
 
-    // Right side knobs (status 0xB2, MIDI 0x01, 0x02, 0x03)
-    createKnobHandler('right', 1, 0xB2, 0x01);  // Right knob 1
-    createKnobHandler('right', 2, 0xB2, 0x02);  // Right knob 2
-    createKnobHandler('right', 3, 0xB2, 0x03);  // Right knob 3
+    // Right side knobs (CC 0x41, 0x42, 0x43) - affect deck 3
+    createKnobHandler('right', 1, 0xB1, 0x41);  // Right knob 1 - deck 3
+    createKnobHandler('right', 2, 0xB1, 0x42);  // Right knob 2 - deck 3
+    createKnobHandler('right', 3, 0xB1, 0x43);  // Right knob 3 - deck 3
     
-    // Right side knobs with Shift (status 0xB2, MIDI 0x41, 0x42, 0x43)
-    createKnobHandler('right', 1, 0xB2, 0x41);  // Shift + Right knob 1
-    createKnobHandler('right', 2, 0xB2, 0x42);  // Shift + Right knob 2
-    createKnobHandler('right', 3, 0xB2, 0x43);  // Shift + Right knob 3
+    // Right side knobs with Shift (status 0xB2) - affect deck 4
+    createKnobHandler('right', 1, 0xB2, 0x41);  // Shift + Right knob 1 - deck 4
+    createKnobHandler('right', 2, 0xB2, 0x42);  // Shift + Right knob 2 - deck 4
+    createKnobHandler('right', 3, 0xB2, 0x43);  // Shift + Right knob 3 - deck 4
 
-    try { 
-        console.log('ReloopBeatmix24: FX knob handlers registered'); 
-    } catch (e) {}
+
 };
 
 ReloopBeatmix24.ShiftFxKnobTurn = function(channel, control, value, status,
@@ -954,58 +930,7 @@ ReloopBeatmix24.ShiftFxKnobTurn = function(channel, control, value, status,
 };
 
 // Fx knobs send Note-Off MIDI signal when at 0 and Note-On when leaving zero.
-// These 0x9 MIDI signals are mapped to this function
-ReloopBeatmix24.FxKnobOnOff = function(channel, control, value, status, group) {
-    if (FxMode !== 1) {
-        engine.setValue(group, "enabled", value ? 1 : 0);
-    }
-    // Nothing in single-effect mode
-};
 
-ReloopBeatmix24.EffectClearTimerCallBack = function(group) {
-    engine.setValue(group, "clear", 0);
-};
-
-ReloopBeatmix24.ShiftFxKnobOnOff = function(channel, control, value, status, group) {
-    if (FxMode !== 1) {
-        if (value === UP) {
-            engine.setValue(group, "clear", 1);
-            engine.beginTimer(100,
-                () => {ReloopBeatmix24.EffectClearTimerCallBack(group); }, true);
-        }
-    }
-    // Nothing in single-effect mode
-};
-
-ReloopBeatmix24.FxEncoderTurn = function(channel, control, value, status, group) {
-    const newValue = value - 0x40;
-    if (FxMode === 1) {
-        engine.setValue(group, newValue > 0 ? "mix_up" : "mix_down", 1);
-    } else {
-        engine.setValue(group, newValue > 0 ? "super1_up" : "super1_down", 1);
-    }
-};
-
-ReloopBeatmix24.ShiftFxEncoderTurn = function(channel, control, value, status,
-    group) {
-    const newValue = value - 0x40;
-    if (FxMode === 1) {
-        engine.setValue(group, "chain_selector", newValue);
-    } else {
-        engine.setValue(group, newValue > 0 ? "mix_up" : "mix_down", 1);
-    }
-};
-
-ReloopBeatmix24.FxEncoderPush = function(channel, control, value, status, group) {
-    if (value === DOWN) {
-        script.toggleControl(group, "enabled");
-    }
-};
-
-ReloopBeatmix24.ShiftFxEncoderPush = function(channel, control, value, status,
-    group) {
-    engine.setValue(group, "clear", value);
-};
 
 ReloopBeatmix24.deck = ["[Channel1]", "[Channel2]", "[Channel3]", "[Channel4]"];
 ReloopBeatmix24.currentlySoloedDeck = -1; // Use -1 to indicate no deck is soloed
@@ -1021,39 +946,26 @@ ReloopBeatmix24.beatConnections = [];
     Output:  None
     -------- ------------------------------------------------------ */
 ReloopBeatmix24.setupBeatFlashing = function() {
-    console.log("ReloopBeatmix24.setupBeatFlashing: Setting up beat flashing for channel buttons");
-    
     // Set up beat flashing for each channel
     for (let i = 0; i < 4; i++) {
         const channel = ReloopBeatmix24.deck[i];
         const statusByte = 0x91 + i; // 0x91 for Channel1, 0x92 for Channel2, etc.
         const dataByte1 = 0x50; // Channel button MIDI note
-        const dataByte2 = 0x00;
-        
-        console.log(`ReloopBeatmix24.setupBeatFlashing: Setting up channel ${i+1} - ${channel}, statusByte=${statusByte}, dataByte1=${dataByte1}`);
         
         // Create a simple beat connection that sends regular MIDI messages
         const connection = engine.makeConnection(channel, "beat_active", function (value) {
-            console.log(`ReloopBeatmix24.setupBeatFlashing: beat_active value=${value} for ${channel}`);
-            
             if (value === 1) {
                 // Beat is active - turn LED on
-                console.log(`ReloopBeatmix24.setupBeatFlashing: Turning LED ON for ${channel}`);
                 midi.sendShortMsg(statusByte, dataByte1, 0x7F);
             } else {
                 // Beat is not active - turn LED off
-                console.log(`ReloopBeatmix24.setupBeatFlashing: Turning LED OFF for ${channel}`);
                 midi.sendShortMsg(statusByte, dataByte1, 0x00);
             }
         });
         
         // Store the connection for cleanup
         ReloopBeatmix24.beatConnections.push(connection);
-        
-        console.log(`ReloopBeatmix24.setupBeatFlashing: Created beat connection for ${channel}`);
     }
-    
-    console.log(`ReloopBeatmix24.setupBeatFlashing: Created ${ReloopBeatmix24.beatConnections.length} beat connections`);
 };
 
 /* -------- ------------------------------------------------------
@@ -1063,11 +975,8 @@ ReloopBeatmix24.setupBeatFlashing = function() {
     Output:  None
     -------- ------------------------------------------------------ */
 ReloopBeatmix24.cleanupBeatFlashing = function() {
-    console.log("ReloopBeatmix24.cleanupBeatFlashing: Cleaning up beat connections");
-    
     ReloopBeatmix24.beatConnections.forEach(function(connection) {
         if (connection) {
-            console.log("ReloopBeatmix24.cleanupBeatFlashing: Disconnecting beat connection");
             connection.disconnect();
         }
     });
@@ -1138,16 +1047,12 @@ ReloopBeatmix24.toggleSolo = function(deckIndex, deckGroups, currentSoloState) {
     Output:  None
     -------- ------------------------------------------------------ */
 ReloopBeatmix24.solo = function(ch, midino, value, status, group) {
-    console.log(`ReloopBeatmix24.solo called: ch=${ch}, midino=${midino}, value=${value}, status=${status}, group=${group}`);
-    
     if (!value) {
-        console.log("ReloopBeatmix24.solo: Ignoring button release");
         return; // Only respond to button press, not release
     }
     
     // Extract deck index from group name (e.g., "[Channel1]" -> 0, "[Channel2]" -> 1, etc.)
     var deckIndex = parseInt(group.match(/\[Channel(\d+)\]/)[1]) - 1;
-    console.log(`ReloopBeatmix24.solo: deckIndex=${deckIndex}, group=${group}`);
     
     // Use the generic ReloopBeatmix24.toggleSolo function with our controller-specific state
     var soloState = {
@@ -1155,15 +1060,11 @@ ReloopBeatmix24.solo = function(ch, midino, value, status, group) {
         savedStates: ReloopBeatmix24.pflNowList
     };
     
-    console.log(`ReloopBeatmix24.solo: Before toggle - soloedDeckIndex=${soloState.soloedDeckIndex}, savedStates=${soloState.savedStates}`);
-    
     soloState = ReloopBeatmix24.toggleSolo(deckIndex, ReloopBeatmix24.deck, soloState);
     
     // Update our controller-specific state
     ReloopBeatmix24.currentlySoloedDeck = soloState.soloedDeckIndex;
     ReloopBeatmix24.pflNowList = soloState.savedStates;
-    
-    console.log(`ReloopBeatmix24.solo: After toggle - soloedDeckIndex=${ReloopBeatmix24.currentlySoloedDeck}, pflNowList=${ReloopBeatmix24.pflNowList}`);
 };
 
 
