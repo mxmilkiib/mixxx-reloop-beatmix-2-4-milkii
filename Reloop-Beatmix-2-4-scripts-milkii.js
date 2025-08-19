@@ -68,8 +68,44 @@ var ReloopBeatmix24 = {};
 
 // Configuration for FX handling
 ReloopBeatmix24.config = {
-    twoFxUnitsMode: false        // false = 4 FX units (1 per deck), true = 2 FX units (FX1/2 shared)
+    twoFxUnitsMode: false        // false = 4 FX busses, true = 2 FX busses
 };
+
+/*
+ * FX Buss Assignment System - Opportunistic Pattern
+ * =================================================
+ * 
+ * The controller uses an opportunistic pattern to support different FX buss configurations
+ * without code duplication. Each configuration defines:
+ * - maxValue: highest possible assignment value
+ * - bussCount: number of FX busses
+ * - busses: array of buss definitions with id, unit, and bit mask
+ * 
+ * Current configurations:
+ * 
+ * 2 FX Buss Mode (twoFxUnitsMode: true):
+ * - Left rotary encoder: cycles deck 1 through FX buss combinations (0-3)
+ * - Left rotary encoder + Shift: cycles deck 2 through FX buss combinations (0-3)
+ * - Right rotary encoder: cycles deck 3 through FX buss combinations (0-3)
+ * - Right rotary encoder + Shift: cycles deck 4 through FX buss combinations (0-3)
+ * 
+ * 4 FX Buss Mode (twoFxUnitsMode: false):
+ * - Left rotary encoder: cycles deck 1 through FX buss combinations (0-15)
+ * - Left rotary encoder + Shift: cycles deck 2 through FX buss combinations (0-15)
+ * - Right rotary encoder: cycles deck 3 through FX buss combinations (0-15)
+ * - Right rotary encoder + Shift: cycles deck 4 through FX buss combinations (0-15)
+ * 
+ * Binary combinations represent which FX busses receive audio from each deck:
+ * - 2 buss mode: 0(00)=none, 1(01)=buss1, 2(10)=buss2, 3(11)=both
+ * - 4 buss mode: 0(0000)=none, 1(0001)=buss1, 2(0010)=buss2, 3(0011)=buss1+2, etc.
+ * 
+ * Key Functions:
+ * - ReloopBeatmix24.setTwoFxUnitsMode(true/false) - Switch between 2/4 buss modes
+ * - ReloopBeatmix24.setFxBussConfig(name) - Switch to specific configuration
+ * - ReloopBeatmix24.addFxBussConfig(name, config) - Add new configuration
+ * - ReloopBeatmix24.getAllFxCombinations() - Get all possible combinations
+ * - ReloopBeatmix24.getFxAssignmentDescription(assignment) - Human-readable description
+ */
 
 // Track effect states for each deck to determine when to disable deck
 ReloopBeatmix24.deckEffectStates = {
@@ -77,6 +113,14 @@ ReloopBeatmix24.deckEffectStates = {
     2: { 1: 0, 2: 0, 3: 0 }, // deck 2: effects 1, 2, 3
     3: { 1: 0, 2: 0, 3: 0 }, // deck 3: effects 1, 2, 3
     4: { 1: 0, 2: 0, 3: 0 }  // deck 4: effects 1, 2, 3
+};
+
+// Track FX buss assignments for each deck (binary combinations)
+ReloopBeatmix24.deckFxAssignments = {
+    1: 0, // deck 1: 0-3 (2 busses) or 0-15 (4 busses)
+    2: 0, // deck 2: 0-3 (2 busses) or 0-15 (4 busses)
+    3: 0, // deck 3: 0-3 (2 busses) or 0-15 (4 busses)
+    4: 0  // deck 4: 0-3 (2 busses) or 0-15 (4 busses)
 };
 
 // Helper function to check if all effects for a deck are at 0
@@ -88,18 +132,12 @@ ReloopBeatmix24.shouldDisableDeck = function(deck, unit) {
 // Helper function to update deck effect state and enable/disable deck accordingly
 ReloopBeatmix24.updateDeckEffectState = function(deck, unit, slot, value) {
     ReloopBeatmix24.deckEffectStates[deck][slot] = value;
-    const unitGroup = `[EffectRack1_EffectUnit${unit}]`;
-    const deckGroup = `[Channel${deck}]`;
     
-    // Only disable deck if ALL effects are at 0
-    if (ReloopBeatmix24.shouldDisableDeck(deck, unit)) {
-        engine.setValue(unitGroup, `group_${deckGroup}_enable`, 0);
-        console.log(`Deck ${deck} disabled: all effects at 0`);
-    } else {
-        // Enable deck if any effect is above 0
-        engine.setValue(unitGroup, `group_${deckGroup}_enable`, 1);
-        console.log(`Deck ${deck} enabled: effects at [${ReloopBeatmix24.deckEffectStates[deck][1].toFixed(3)}, ${ReloopBeatmix24.deckEffectStates[deck][2].toFixed(3)}, ${ReloopBeatmix24.deckEffectStates[deck][3].toFixed(3)}]`);
-    }
+    // Note: We no longer directly control deck enable states here
+    // The rotary encoders control FX buss assignments, effect knobs only control effect parameters
+    // Individual effects are still enabled/disabled based on their values
+    
+    console.log(`Deck ${deck} Effect ${slot} updated to ${value.toFixed(3)}`);
 };
 
 // Helper function to read current effect states and update tracking
@@ -134,6 +172,124 @@ ReloopBeatmix24.debugEffectStates = function() {
         const deckState = ReloopBeatmix24.deckEffectStates[deck];
         console.log(`Deck ${deck}: Effect1=${deckState[1].toFixed(3)}, Effect2=${deckState[2].toFixed(3)}, Effect3=${deckState[3].toFixed(3)}`);
     }
+};
+
+// FX Buss Configuration - opportunistic pattern for different buss counts
+ReloopBeatmix24.fxBussConfig = {
+    // 2 buss mode configuration
+    twoBuss: {
+        maxValue: 3,
+        bussCount: 2,
+        busses: [
+            { id: 1, unit: "[EffectRack1_EffectUnit1]", bit: 1 },
+            { id: 2, unit: "[EffectRack1_EffectUnit2]", bit: 2 }
+        ]
+    },
+    // 4 buss mode configuration
+    fourBuss: {
+        maxValue: 15,
+        bussCount: 4,
+        busses: [
+            { id: 1, unit: "[EffectRack1_EffectUnit1]", bit: 1 },
+            { id: 2, unit: "[EffectRack1_EffectUnit2]", bit: 2 },
+            { id: 3, unit: "[EffectRack1_EffectUnit3]", bit: 4 },
+            { id: 4, unit: "[EffectRack1_EffectUnit4]", bit: 8 }
+        ]
+    }
+};
+
+// Add new FX buss configuration dynamically
+ReloopBeatmix24.addFxBussConfig = function(name, config) {
+    if (config.bussCount && config.maxValue && config.busses && Array.isArray(config.busses)) {
+        ReloopBeatmix24.fxBussConfig[name] = config;
+        console.log(`Added new FX buss configuration: ${name} (${config.bussCount} busses, max value: ${config.maxValue})`);
+        return true;
+    }
+    console.error(`Invalid FX buss configuration: ${name}`);
+    return false;
+};
+
+// Get current buss configuration
+ReloopBeatmix24.getCurrentBussConfig = function() {
+    return ReloopBeatmix24.config.twoFxUnitsMode ? 
+        ReloopBeatmix24.fxBussConfig.twoBuss : 
+        ReloopBeatmix24.fxBussConfig.fourBuss;
+};
+
+// Apply FX buss assignment to engine
+ReloopBeatmix24.applyFxBussAssignment = function(deck, assignment) {
+    const config = ReloopBeatmix24.getCurrentBussConfig();
+    const deckGroup = `[Channel${deck}]`;
+    
+    // Apply each buss assignment
+    config.busses.forEach(buss => {
+        const enabled = (assignment & buss.bit) ? 1 : 0;
+        engine.setValue(buss.unit, `group_${deckGroup}_enable`, enabled);
+    });
+    
+    return config.busses.map(buss => ({
+        id: buss.id,
+        enabled: (assignment & buss.bit) ? 1 : 0
+    }));
+};
+
+// Helper function to cycle through FX buss assignments
+ReloopBeatmix24.cycleFxAssignment = function(deck, direction) {
+    const config = ReloopBeatmix24.getCurrentBussConfig();
+    const current = ReloopBeatmix24.deckFxAssignments[deck];
+    
+    // Calculate new value with wraparound
+    let newValue;
+    if (direction > 0) {
+        newValue = (current + 1) % (config.maxValue + 1);
+    } else {
+        newValue = (current - 1 + (config.maxValue + 1)) % (config.maxValue + 1);
+    }
+    
+    // Update assignment and apply to engine
+    ReloopBeatmix24.deckFxAssignments[deck] = newValue;
+    const bussStates = ReloopBeatmix24.applyFxBussAssignment(deck, newValue);
+    
+    // Generate debug output
+    const binary = newValue.toString(2).padStart(config.bussCount, '0');
+    const bussInfo = bussStates.map(buss => `FX Buss ${buss.id}:${buss.enabled}`).join(', ');
+    console.log(`Deck ${deck} FX Assignment: ${newValue} (binary: ${binary}) - ${bussInfo}`);
+    
+    return newValue;
+};
+
+// Debug function to show current FX buss assignments
+ReloopBeatmix24.debugFxAssignments = function() {
+    const config = ReloopBeatmix24.getCurrentBussConfig();
+    console.log(`Current FX Buss Assignments (${config.bussCount} buss mode):`);
+    
+    for (let deck = 1; deck <= 4; deck++) {
+        const assignment = ReloopBeatmix24.deckFxAssignments[deck];
+        const binary = assignment.toString(2).padStart(config.bussCount, '0');
+        
+        const bussStates = config.busses.map(buss => 
+            `FX Buss ${buss.id}:${(assignment & buss.bit) ? 'ON' : 'OFF'}`
+        ).join(', ');
+        
+        console.log(`Deck ${deck}: ${assignment} (binary: ${binary}) - ${bussStates}`);
+    }
+};
+
+// Get current FX assignment for a specific deck
+ReloopBeatmix24.getDeckFxAssignment = function(deck) {
+    return ReloopBeatmix24.deckFxAssignments[deck];
+};
+
+// Set specific FX assignment for a deck (useful for testing)
+ReloopBeatmix24.setDeckFxAssignment = function(deck, assignment) {
+    const config = ReloopBeatmix24.getCurrentBussConfig();
+    if (assignment >= 0 && assignment <= config.maxValue) {
+        ReloopBeatmix24.deckFxAssignments[deck] = assignment;
+        // Apply the assignment
+        ReloopBeatmix24.cycleFxAssignment(deck, 0); // Direction doesn't matter here, just apply current value
+        return true;
+    }
+    return false;
 };
 
 const RateRangeArray = [0.08, 0.10, 0.12, 0.16];
@@ -212,6 +368,11 @@ ReloopBeatmix24.initializeEffects = function() {
             engine.setValue(unitGroup, `group_${deckGroup}_enable`, 0);
             // Sync effect states for this deck/unit combination
             ReloopBeatmix24.syncEffectStates(deck, unit);
+        }
+        
+        // Initialize FX buss assignments for all decks
+        for (let deck = 1; deck <= 4; deck++) {
+            ReloopBeatmix24.cycleFxAssignment(deck, 0); // Set initial assignment (0 = no FX units)
         }
     }
 };
@@ -341,7 +502,79 @@ ReloopBeatmix24.init = function(id, _debug) {
 ReloopBeatmix24.setTwoFxUnitsMode = function(enabled) {
     ReloopBeatmix24.config = ReloopBeatmix24.config || {};
     ReloopBeatmix24.config.twoFxUnitsMode = !!enabled;
+    
+    // Reset all deck assignments to 0 when switching modes
+    ReloopBeatmix24.resetAllFxAssignments();
+    
+    console.log(`Switched to ${enabled ? '2' : '4'} FX buss mode`);
+};
 
+// Switch to a specific FX buss configuration by name
+ReloopBeatmix24.setFxBussConfig = function(configName) {
+    if (ReloopBeatmix24.fxBussConfig[configName]) {
+        // Store the current config name for future reference
+        ReloopBeatmix24.config.currentBussConfig = configName;
+        
+        // Reset all assignments when switching configs
+        ReloopBeatmix24.resetAllFxAssignments();
+        
+        console.log(`Switched to FX buss configuration: ${configName}`);
+        return true;
+    }
+    console.error(`Unknown FX buss configuration: ${configName}`);
+    return false;
+};
+
+// Reset all FX assignments to 0
+ReloopBeatmix24.resetAllFxAssignments = function() {
+    for (let deck = 1; deck <= 4; deck++) {
+        ReloopBeatmix24.deckFxAssignments[deck] = 0;
+        ReloopBeatmix24.cycleFxAssignment(deck, 0); // Apply the reset
+    }
+};
+
+// Get current FX buss mode
+ReloopBeatmix24.getFxBussMode = function() {
+    return ReloopBeatmix24.config.twoFxUnitsMode ? 2 : 4;
+};
+
+// Get the maximum value for current FX buss mode
+ReloopBeatmix24.getMaxFxAssignment = function() {
+    return ReloopBeatmix24.getCurrentBussConfig().maxValue;
+};
+
+// Get all possible FX buss combinations for current mode
+ReloopBeatmix24.getAllFxCombinations = function() {
+    const config = ReloopBeatmix24.getCurrentBussConfig();
+    const combinations = [];
+    
+    for (let i = 0; i <= config.maxValue; i++) {
+        const bussStates = config.busses.map(buss => ({
+            id: buss.id,
+            enabled: (i & buss.bit) ? 1 : 0
+        }));
+        combinations.push({
+            value: i,
+            binary: i.toString(2).padStart(config.bussCount, '0'),
+            busses: bussStates
+        });
+    }
+    
+    return combinations;
+};
+
+// Get human-readable description of an FX assignment
+ReloopBeatmix24.getFxAssignmentDescription = function(assignment) {
+    const config = ReloopBeatmix24.getCurrentBussConfig();
+    const enabledBusses = config.busses
+        .filter(buss => assignment & buss.bit)
+        .map(buss => buss.id);
+    
+    if (enabledBusses.length === 0) return "No FX busses";
+    if (enabledBusses.length === 1) return `FX Buss ${enabledBusses[0]}`;
+    if (enabledBusses.length === config.bussCount) return "All FX busses";
+    
+    return `FX Busses ${enabledBusses.join(', ')}`;
 };
 
 ReloopBeatmix24.shutdown = function() {
@@ -896,6 +1129,21 @@ ReloopBeatmix24.registerFxKnobHandlers = function() {
     createKnobHandler('right', 2, 0xB2, 0x42);  // Shift + Right knob 2 - deck 4
     createKnobHandler('right', 3, 0xB2, 0x43);  // Shift + Right knob 3 - deck 4
 
+    // Register rotary encoder handlers for FX buss assignment using opportunistic pattern
+    const encoderConfig = [
+        { control: 0x61, status: 0xB1, deck: 1, description: "Left encoder - deck 1" },
+        { control: 0x61, status: 0xB2, deck: 2, description: "Left encoder + Shift - deck 2" },
+        { control: 0x71, status: 0xB1, deck: 3, description: "Right encoder - deck 3" },
+        { control: 0x71, status: 0xB2, deck: 4, description: "Right encoder + Shift - deck 4" }
+    ];
+    
+    encoderConfig.forEach(config => {
+        midi.makeInputHandler(config.status, config.control, (channel, _control, value, status) => {
+            const direction = value > 0x40 ? 1 : -1; // 0x41+ = clockwise, 0x3F- = counter-clockwise
+            ReloopBeatmix24.cycleFxAssignment(config.deck, direction);
+            return true;
+        });
+    });
 
 };
 

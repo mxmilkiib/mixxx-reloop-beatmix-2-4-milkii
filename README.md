@@ -4,7 +4,7 @@ A customized controller mapping for the Reloop Beatmix 2/4 DJ controller, built 
 
 ## Overview
 
-This controller mapping provides enhanced functionality for the Reloop Beatmix 2/4, including improved FX handling, beat-synchronized LED flashing, and better MIDI control integration. The original script has been extended from 782 lines to 1169 lines with new features and bug fixes.
+This controller mapping provides enhanced functionality for the Reloop Beatmix 2/4, including advanced FX management, intelligent MIDI processing, beat-synchronized LED flashing, and robust state management. The original script has been extended from 782 lines to 1318 lines with sophisticated new features and comprehensive improvements.
 
 ## Features
 
@@ -15,21 +15,25 @@ This controller mapping provides enhanced functionality for the Reloop Beatmix 2
 - **Pitch Control**: Precise tempo control with range selection
 - **Loop Controls**: In/out loop setting with visual indicators
 
-### Enhanced FX System
+### Advanced FX System
 - **Flexible FX Unit Configuration**: Support for both 2-unit and 4-unit FX modes
-- **Smart FX Knob Handling**: JavaScript-based MIDI processing for better reliability
+- **Pattern-Based FX Management**: Sophisticated buss assignment system with opportunistic configuration
+- **Smart FX Knob Handling**: JavaScript-based MIDI processing with automatic effect loading
 - **Auto-Enable/Disable**: Effects automatically turn on/off based on knob position
 - **Shift Key Support**: Access to additional decks (3/4) when shift is held
+- **Automatic Effect Loading**: Empty FX slots automatically load default effects
 
 ### Beat Synchronization
 - **Channel Button Flashing**: Beat-synchronized LED flashing for active channels
 - **Visual Beat Feedback**: Real-time visual indication of beat timing
+- **Proper Resource Management**: Clean connection handling and cleanup
 
 ### Advanced Features
-- **Solo Mode**: Exclusive headphone monitoring for individual decks
+- **Solo Mode**: Exclusive headphone monitoring with state preservation
 - **Long Press Support**: Extended functionality for load buttons and FX mode switching
 - **Soft Takeover**: Prevents parameter jumping when switching tracks
 - **Comprehensive LED Feedback**: Visual status for all controller elements
+- **State Management**: Robust tracking and synchronization of effect states
 
 ## Installation
 
@@ -63,6 +67,27 @@ ReloopBeatmix24.setTwoFxUnitsMode(true);  // Enable 2-unit mode
 ReloopBeatmix24.setTwoFxUnitsMode(false); // Enable 4-unit mode
 ```
 
+### FX Buss Configuration
+Switch between predefined FX configurations:
+```javascript
+ReloopBeatmix24.setFxBussConfig("twoBuss");   // Switch to 2-unit mode
+ReloopBeatmix24.setFxBussConfig("fourBuss");  // Switch to 4-unit mode
+```
+
+### Custom FX Configurations
+Create custom FX buss configurations:
+```javascript
+ReloopBeatmix24.addFxBussConfig("custom", {
+    maxValue: 7,
+    bussCount: 3,
+    busses: [
+        { id: 1, unit: 1, bitMask: 0x01 },
+        { id: 2, unit: 2, bitMask: 0x02 },
+        { id: 3, unit: 3, bitMask: 0x04 }
+    ]
+});
+```
+
 ### Jog Wheel Warning Times
 Customize the end-of-track warning behavior:
 ```javascript
@@ -75,13 +100,13 @@ const JogFlashCriticalTime = 15; // Seconds before end to start fast flashing
 ### Left Side (Decks 1/3)
 - **Hotcue Pads**: 4 pads per deck for cue points
 - **Transport Controls**: Play, Cue, Sync, Pitch bend
-- **FX Knobs**: 3 knobs controlling effect parameters
+- **FX Knobs**: 3 knobs controlling effect parameters with automatic loading
 - **Jog Wheel**: Touch-sensitive with LED position indicator
 
 ### Right Side (Decks 2/4)
 - **Hotcue Pads**: 4 pads per deck for cue points
 - **Transport Controls**: Play, Cue, Sync, Pitch bend
-- **FX Knobs**: 3 knobs controlling effect parameters
+- **FX Knobs**: 3 knobs controlling effect parameters with automatic loading
 - **Jog Wheel**: Touch-sensitive with LED position indicator
 
 ### Center Section
@@ -99,21 +124,57 @@ The controller uses standard MIDI CC messages with the following channel assignm
 - **Channel 4**: Deck 4 controls (shift mode)
 
 ### FX Knob MIDI Mapping
-- **Left Side**: CC 0x10-0x12 (normal), CC 0x41-0x43 (shift)
-- **Right Side**: CC 0x40-0x42 (normal), CC 0x41-0x43 (shift)
+- **Left Side**: CC 0x01-0x03 (normal), CC 0x01-0x03 (shift)
+- **Right Side**: CC 0x41-0x43 (normal), CC 0x41-0x43 (shift)
+- **Automatic Effect Loading**: Empty slots automatically load default effects
+- **Smart State Management**: Effect states are tracked and synchronized
+
+## Advanced Features
+
+### Effect State Management
+The controller maintains comprehensive state tracking:
+- Per-deck effect states and assignments
+- Automatic deck audio management based on effect states
+- State synchronization across FX units
+- Runtime configuration switching
+
+### Beat Synchronization
+Enhanced beat-synchronized features:
+- Channel button flashing synchronized with beat timing
+- Proper connection management and cleanup
+- Real-time beat state monitoring
+- Resource-efficient implementation
+
+### Solo Mode
+Robust headphone monitoring system:
+- Exclusive solo mode for individual decks
+- PFL state preservation and restoration
+- Support for switching between soloed decks
+- Proper cleanup and state management
 
 ## Troubleshooting
 
 ### Common Issues
-1. **FX Knobs Not Responding**: Check that `disableXmlFxBindings` is set to `true`
+1. **FX Knobs Not Responding**: Check that the controller is properly initialized
 2. **LEDs Not Flashing**: Verify beat connections are properly established
 3. **Shift Key Not Working**: Ensure MIDI status byte 0xB2 is being received
+4. **Effects Not Loading**: Check that FX units are properly configured
 
 ### Debug Mode
 Enable console logging by checking the browser console in Mixxx's developer tools. The script provides extensive logging for troubleshooting.
 
+### Configuration Validation
+Use the built-in configuration functions to verify settings:
+```javascript
+ReloopBeatmix24.getFxBussMode();           // Get current FX mode (2 or 4)
+ReloopBeatmix24.getAllFxCombinations();    // Get all possible FX combinations
+ReloopBeatmix24.debugEffectStates();       // Debug effect states
+ReloopBeatmix24.debugFxAssignments();      // Debug FX assignments
+```
+
 ## Version History
 
+- **v2.1.0** (2024-12-19): Advanced FX buss assignment system, enhanced state management
 - **v2.0.0** (2024-08-25): Major rewrite for Mixxx 2.4 compatibility
 - **v1.3.1** (2016-08-19): Bug fixes and improvements
 - **v1.3.0** (2016-08-17): Controller status synchronization
