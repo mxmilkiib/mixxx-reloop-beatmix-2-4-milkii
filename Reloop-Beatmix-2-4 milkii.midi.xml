@@ -2016,6 +2016,134 @@
                     <script-binding/>
                 </options>
             </control>
+            
+            <!-- Deck Load Buttons -->
+            <control>
+                <group>[Channel1]</group>
+                <key>ReloopBeatmix24.LoadButton</key>
+                <description>LOAD 1</description>
+                <status>0x91</status>
+                <midino>0x50</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
+                <group>[Channel2]</group>
+                <key>ReloopBeatmix24.LoadButton</key>
+                <description>LOAD 2</description>
+                <status>0x92</status>
+                <midino>0x50</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
+                <group>[Channel3]</group>
+                <key>ReloopBeatmix24.LoadButton</key>
+                <description>LOAD 3</description>
+                <status>0x93</status>
+                <midino>0x50</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
+                <group>[Channel4]</group>
+                <key>ReloopBeatmix24.LoadButton</key>
+                <description>LOAD 4</description>
+                <status>0x94</status>
+                <midino>0x50</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            
+            <!-- PFL buttons handled in JS via midi.makeInputHandler; xml controls disabled
+            <control>
+                <group>[Channel1]</group>
+                <key>ReloopBeatmix24.PflButton</key>
+                <description>PFL 1</description>
+                <status>0x91</status>
+                <midino>0x52</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
+                <group>[Channel2]</group>
+                <key>ReloopBeatmix24.PflButton</key>
+                <description>PFL 2</description>
+                <status>0x92</status>
+                <midino>0x52</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
+                <group>[Channel3]</group>
+                <key>ReloopBeatmix24.PflButton</key>
+                <description>PFL 3</description>
+                <status>0x93</status>
+                <midino>0x52</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
+                <group>[Channel4]</group>
+                <key>ReloopBeatmix24.PflButton</key>
+                <description>PFL 4</description>
+                <status>0x94</status>
+                <midino>0x52</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            -->
+            
+            <!-- shift+pfl buttons handled in JS via midi.makeInputHandler; xml controls disabled
+            <control>
+                <group>[Channel1]</group>
+                <key>ReloopBeatmix24.ShiftPflButton</key>
+                <description>SHIFT+PFL 1 (SOLO)</description>
+                <status>0x91</status>
+                <midino>0x92</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
+                <group>[Channel2]</group>
+                <key>ReloopBeatmix24.ShiftPflButton</key>
+                <description>SHIFT+PFL 2 (SOLO)</description>
+                <status>0x92</status>
+                <midino>0x92</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
+                <group>[Channel3]</group>
+                <key>ReloopBeatmix24.ShiftPflButton</key>
+                <description>SHIFT+PFL 3 (SOLO)</description>
+                <status>0x93</status>
+                <midino>0x92</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
+                <group>[Channel4]</group>
+                <key>ReloopBeatmix24.ShiftPflButton</key>
+                <description>SHIFT+PFL 4 (SOLO)</description>
+                <status>0x94</status>
+                <midino>0x92</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            -->
         </controls>
         <outputs>
             <output>

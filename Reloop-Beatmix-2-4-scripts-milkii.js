@@ -470,11 +470,21 @@ ReloopBeatmix24.init = function(id, _debug) {
     // Set up beat-synchronized flashing for channel buttons
     ReloopBeatmix24.setupBeatFlashing();
 
+    // Initialize PFL system
+    ReloopBeatmix24.initializePflSystem();
+
     // Register JS-based FX knob handlers (replaces XML bindings)
     try {
         ReloopBeatmix24.registerFxKnobHandlers();
     } catch (e) {
         // Silently handle registration errors
+    }
+    
+    // register pfl/solo (shift+pfl) handlers via js (bypass xml bindings)
+    try {
+        ReloopBeatmix24.registerPflHandlers();
+    } catch (e) {
+        // ignore handler registration errors
     }
     
     // Initialize effects for all decks
@@ -1109,20 +1119,20 @@ ReloopBeatmix24.registerFxKnobHandlers = function() {
         });
     };
 
-    // Left side knobs (CC 0x01, 0x02, 0x03) - affect decks 1 and 2
+    // Left side knobs (CC 0x01, 0x02, 0x03) - affect decks 1 and 3
     createKnobHandler('left', 1, 0xB1, 0x01);  // Left knob 1 - deck 1
     createKnobHandler('left', 2, 0xB1, 0x02);  // Left knob 2 - deck 1
     createKnobHandler('left', 3, 0xB1, 0x03);  // Left knob 3 - deck 1
     
-    // Left side knobs with Shift (status 0xB2) - affect deck 2
-    createKnobHandler('left', 1, 0xB2, 0x01);  // Shift + Left knob 1 - deck 2
-    createKnobHandler('left', 2, 0xB2, 0x02);  // Shift + Left knob 2 - deck 2
-    createKnobHandler('left', 3, 0xB2, 0x03);  // Shift + Left knob 3 - deck 2
+    // Left side knobs with Shift (status 0xB2) - affect deck 3
+    createKnobHandler('left', 1, 0xB2, 0x01);  // Shift + Left knob 1 - deck 3
+    createKnobHandler('left', 2, 0xB2, 0x02);  // Shift + Left knob 2 - deck 3
+    createKnobHandler('left', 3, 0xB2, 0x03);  // Shift + Left knob 3 - deck 3
 
-    // Right side knobs (CC 0x41, 0x42, 0x43) - affect deck 3
-    createKnobHandler('right', 1, 0xB1, 0x41);  // Right knob 1 - deck 3
-    createKnobHandler('right', 2, 0xB1, 0x42);  // Right knob 2 - deck 3
-    createKnobHandler('right', 3, 0xB1, 0x43);  // Right knob 3 - deck 3
+    // Right side knobs (CC 0x41, 0x42, 0x43) - affect deck 2
+    createKnobHandler('right', 1, 0xB1, 0x41);  // Right knob 1 - deck 2
+    createKnobHandler('right', 2, 0xB1, 0x42);  // Right knob 2 - deck 2
+    createKnobHandler('right', 3, 0xB1, 0x43);  // Right knob 3 - deck 2
     
     // Right side knobs with Shift (status 0xB2) - affect deck 4
     createKnobHandler('right', 1, 0xB2, 0x41);  // Shift + Right knob 1 - deck 4
@@ -1132,8 +1142,8 @@ ReloopBeatmix24.registerFxKnobHandlers = function() {
     // Register rotary encoder handlers for FX buss assignment using opportunistic pattern
     const encoderConfig = [
         { control: 0x61, status: 0xB1, deck: 1, description: "Left encoder - deck 1" },
-        { control: 0x61, status: 0xB2, deck: 2, description: "Left encoder + Shift - deck 2" },
-        { control: 0x71, status: 0xB1, deck: 3, description: "Right encoder - deck 3" },
+        { control: 0x61, status: 0xB2, deck: 3, description: "Left encoder + Shift - deck 3" },
+        { control: 0x71, status: 0xB1, deck: 2, description: "Right encoder - deck 2" },
         { control: 0x71, status: 0xB2, deck: 4, description: "Right encoder + Shift - deck 4" }
     ];
     
@@ -1145,6 +1155,38 @@ ReloopBeatmix24.registerFxKnobHandlers = function() {
         });
     });
 
+};
+
+// register midi handlers for pfl and shift+pfl buttons (bypass xml bindings)
+ReloopBeatmix24.registerPflHandlers = function() {
+    // note on status bytes per deck for channel buttons (0x91..0x94)
+    const statusByDeck = [0x91, 0x92, 0x93, 0x94];
+    const PFL_NOTE = 0x52;   // regular pfl button
+    const SHIFT_PFL_NOTE = 0x42; // shift+pfl combo (solo)
+
+    for (let deckIndex = 0; deckIndex < 4; deckIndex++) {
+        const statusByte = statusByDeck[deckIndex];
+
+        // regular pfl: toggle pfl for this deck
+        midi.makeInputHandler(statusByte, PFL_NOTE, (channel, control, value, status) => {
+            if (value !== 0) {
+                ReloopBeatmix24.togglePfl(deckIndex);
+            }
+            return true; // consume so xml binding does not also fire
+        });
+
+        // shift+pfl: toggle solo mode for this deck
+        midi.makeInputHandler(statusByte, SHIFT_PFL_NOTE, (channel, control, value, status) => {
+            if (value !== 0) {
+                if (ReloopBeatmix24.soloMode && ReloopBeatmix24.soloedDeck === deckIndex) {
+                    ReloopBeatmix24.exitSoloMode();
+                } else {
+                    ReloopBeatmix24.enterSoloMode(deckIndex);
+                }
+            }
+            return true; // consume so xml binding does not also fire
+        });
+    }
 };
 
 ReloopBeatmix24.ShiftFxKnobTurn = function(channel, control, value, status,
@@ -1181,8 +1223,12 @@ ReloopBeatmix24.ShiftFxKnobTurn = function(channel, control, value, status,
 
 
 ReloopBeatmix24.deck = ["[Channel1]", "[Channel2]", "[Channel3]", "[Channel4]"];
-ReloopBeatmix24.currentlySoloedDeck = -1; // Use -1 to indicate no deck is soloed
-ReloopBeatmix24.pflNowList = [0, 0, 0, 0]; // Stores PFL states before soloing
+
+// PFL system state
+ReloopBeatmix24.pflStates = [false, false, false, false]; // Track PFL state for each deck
+ReloopBeatmix24.soloMode = false; // Whether we're in solo mode
+ReloopBeatmix24.soloedDeck = -1; // Which deck is soloed (-1 = none)
+ReloopBeatmix24.savedPflStates = [false, false, false, false]; // Saved PFL states before solo
 
 // Beat-synchronized LED flashing connections
 ReloopBeatmix24.beatConnections = [];
@@ -1231,6 +1277,155 @@ ReloopBeatmix24.cleanupBeatFlashing = function() {
     
     ReloopBeatmix24.beatConnections = [];
 };
+
+/* -------- ------------------------------------------------------
+    ReloopBeatmix24.PflButton
+    Purpose: Handles regular PFL button presses for multi-deck monitoring
+    Input:   Standard MIDI callback parameters
+    Output:  None
+    -------- ------------------------------------------------------ */
+ReloopBeatmix24.PflButton = function(ch, midino, value, status, group) {
+    if (!value) {
+        return; // Only respond to button press, not release
+    }
+    
+    // Extract deck index from group name (e.g., "[Channel1]" -> 0, "[Channel2]" -> 1, etc.)
+    var deckIndex = parseInt(group.match(/\[Channel(\d+)\]/)[1]) - 1;
+    
+    // Regular PFL = Toggle PFL for this deck
+    print("Regular PFL: Toggling deck " + (deckIndex + 1));
+    ReloopBeatmix24.togglePfl(deckIndex);
+};
+
+/* -------- ------------------------------------------------------
+    ReloopBeatmix24.togglePfl
+    Purpose: Toggles PFL state for a specific deck
+    Input:   deckIndex: index of the deck to toggle PFL for
+    Output:  None
+    -------- ------------------------------------------------------ */
+ReloopBeatmix24.togglePfl = function(deckIndex) {
+    // Exit solo mode if we're in it
+    if (ReloopBeatmix24.soloMode) {
+        ReloopBeatmix24.exitSoloMode();
+    }
+    
+    // Toggle PFL state for this deck
+    ReloopBeatmix24.pflStates[deckIndex] = !ReloopBeatmix24.pflStates[deckIndex];
+    
+    // Update the actual PFL control
+    var deckGroup = ReloopBeatmix24.deck[deckIndex];
+    engine.setValue(deckGroup, "pfl", ReloopBeatmix24.pflStates[deckIndex] ? 1 : 0);
+    
+    print("PFL " + (deckIndex + 1) + " " + (ReloopBeatmix24.pflStates[deckIndex] ? "ON" : "OFF"));
+};
+
+/* -------- ------------------------------------------------------
+    ReloopBeatmix24.ShiftPflButton
+    Purpose: Handles Shift+PFL button presses for solo mode
+    Input:   Standard MIDI callback parameters
+    Output:  None
+    -------- ------------------------------------------------------ */
+ReloopBeatmix24.ShiftPflButton = function(ch, midino, value, status, group) {
+    if (!value) {
+        return; // Only respond to button press, not release
+    }
+    
+    // Extract deck index from group name (e.g., "[Channel1]" -> 0, "[Channel2]" -> 1, etc.)
+    var deckIndex = parseInt(group.match(/\[Channel(\d+)\]/)[1]) - 1;
+    
+    if (ReloopBeatmix24.soloMode && ReloopBeatmix24.soloedDeck === deckIndex) {
+        // If this deck is already soloed, exit solo mode
+        ReloopBeatmix24.exitSoloMode();
+    } else {
+        // Enter solo mode for this deck
+        ReloopBeatmix24.enterSoloMode(deckIndex);
+    }
+};
+
+/* -------- ------------------------------------------------------
+    ReloopBeatmix24.enterSoloMode
+    Purpose: Enters solo mode for a specific deck (exclusive PFL)
+    Input:   deckIndex: index of the deck to solo
+    Output:  None
+    -------- ------------------------------------------------------ */
+ReloopBeatmix24.enterSoloMode = function(deckIndex) {
+    // If we're already in solo mode for this deck, exit solo mode
+    if (ReloopBeatmix24.soloMode && ReloopBeatmix24.soloedDeck === deckIndex) {
+        ReloopBeatmix24.exitSoloMode();
+        return;
+    }
+    
+    // Save current PFL states before entering solo mode
+    if (!ReloopBeatmix24.soloMode) {
+        for (var i = 0; i < 4; i++) {
+            ReloopBeatmix24.savedPflStates[i] = ReloopBeatmix24.pflStates[i];
+        }
+    }
+    
+    // Turn off PFL for all decks
+    for (var i = 0; i < 4; i++) {
+        var deckGroup = ReloopBeatmix24.deck[i];
+        engine.setValue(deckGroup, "pfl", 0);
+        ReloopBeatmix24.pflStates[i] = false;
+    }
+    
+    // Turn on PFL only for the soloed deck
+    var soloDeckGroup = ReloopBeatmix24.deck[deckIndex];
+    engine.setValue(soloDeckGroup, "pfl", 1);
+    ReloopBeatmix24.pflStates[deckIndex] = true;
+    
+    ReloopBeatmix24.soloMode = true;
+    ReloopBeatmix24.soloedDeck = deckIndex;
+    
+    print("SOLO mode: Deck " + (deckIndex + 1) + " active");
+};
+
+/* -------- ------------------------------------------------------
+    ReloopBeatmix24.exitSoloMode
+    Purpose: Exits solo mode and restores previous PFL states
+    Input:   None
+    Output:  None
+    -------- ------------------------------------------------------ */
+ReloopBeatmix24.exitSoloMode = function() {
+    if (!ReloopBeatmix24.soloMode) {
+        return;
+    }
+    
+    // Restore previous PFL states
+    for (var i = 0; i < 4; i++) {
+        var deckGroup = ReloopBeatmix24.deck[i];
+        engine.setValue(deckGroup, "pfl", ReloopBeatmix24.savedPflStates[i] ? 1 : 0);
+        ReloopBeatmix24.pflStates[i] = ReloopBeatmix24.savedPflStates[i];
+    }
+    
+    ReloopBeatmix24.soloMode = false;
+    ReloopBeatmix24.soloedDeck = -1;
+    
+    print("SOLO mode: Exited, PFL states restored");
+};
+
+/* -------- ------------------------------------------------------
+    ReloopBeatmix24.initializePflSystem
+    Purpose: Initializes the PFL system on startup
+    Input:   None
+    Output:  None
+    -------- ------------------------------------------------------ */
+ReloopBeatmix24.initializePflSystem = function() {
+    // Ensure all PFL states are off initially
+    for (var i = 0; i < 4; i++) {
+        var deckGroup = ReloopBeatmix24.deck[i];
+        engine.setValue(deckGroup, "pfl", 0);
+        ReloopBeatmix24.pflStates[i] = false;
+    }
+    
+    // Reset solo mode state
+    ReloopBeatmix24.soloMode = false;
+    ReloopBeatmix24.soloedDeck = -1;
+    
+    print("PFL system initialized");
+};
+
+
 
 /* -------- ------------------------------------------------------
     ReloopBeatmix24.toggleSolo

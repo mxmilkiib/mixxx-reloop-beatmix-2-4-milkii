@@ -1,6 +1,7 @@
-# Reloop Beatmix 2/4 Controller - Customized by milkii
+# Reloop Beatmix 2/4 Controller
+A customised fork by milkii
 
-A customized controller mapping for the Reloop Beatmix 2/4 DJ controller, built on top of Sébastien Blaisot's original mapping with significant enhancements and improvements.
+A customised controller mapping for the Reloop Beatmix 2/4 DJ controller, built on top of Sébastien Blaisot's original mapping with significant enhancements and improvements.
 
 ## Overview
 
