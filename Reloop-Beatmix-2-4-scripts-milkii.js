@@ -15,6 +15,7 @@ const JogFlashCriticalTime = 15; // number of seconds to quickly blink at the en
 /************************  GPL v2 licence  *****************************
  * Reloop Beatmix 2/4 controller script
  * Author: Sébastien Blaisot <sebastien@blaisot.org>
+ * Modifications: milkii
  *
  **********************************************************************
  * User References
