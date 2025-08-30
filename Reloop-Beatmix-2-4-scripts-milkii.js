@@ -57,6 +57,119 @@ const JogFlashCriticalTime = 15; // number of seconds to quickly blink at the en
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  ***********************************************************************/
 ////////////////////////////////////////////////////////////////////////
+// TODOs (pending work not yet tackled)
+// - fx knob mapping comments vs behavior: comments disagree with runtime; align later
+//     lines: 1133-1166 (handler mapping), 1153-1161 comments; action: update comments to reflect actual deck/unit behavior once confirmed on hardware
+// - fx buss selection api: decide single source (twoFxUnitsMode vs currentBussConfig) and document
+//     lines: 202-207 (getCurrentBussConfig), 518-527 (setTwoFxUnitsMode), 529-543 (setFxBussConfig);
+//     action: finalize on currentBussConfig as source of truth and document precedence
+// - extend connectControls to initialize/trigger fx units 3 and 4 for led parity
+//     lines: 431-437 (only units 1/2 handled); action: mirror for units 3/4 triggers if required by skin/LEDs
+// - effects initialization policy: make filter auto-load truly optional and avoid multi-pass cycleFxAssignment
+//     lines: 348-378 (initializeEffects), 497-503 (init call); action: keep guarded by AutoInitializeEffects and move cycleFxAssignment outside unit loop
+// - beat flashing vs load led: verify that using CHANNEL_BUTTON_NOTE for beat flash doesn’t fight load led
+//     lines: 1285-1306 (setupBeatFlashing), 829-839 (deckLoaded load led); action: decide one owner or separate notes for each indicator
+// - handler lifecycle: confirm makeInputHandler deregisters on reload; add explicit teardown if needed
+//     lines: 1105-1166, 1161-1167 (handlers creation), 1173-1233 (PFL handlers); action: add deregistration if Mixxx retains handlers across reloads
+// - remaining magic numbers: promote scratch params, cue/loop notes, and others to constants
+//     lines: 795-811 (scratch/jog), 876-881 (loopDefined note 0x44), 1016-1019 (FX mode LED base already constant);
+//     action: replace scattered literals with named constants
+// - helper dedup: add getDeckIndex(group) to replace repeated regex/substr parsing
+//     lines: 793-801, 876-881, 913-953, 955-977; action: implement helper and use everywhere deck index is parsed
+// - debug controls: gate incidental console.log with a debug flag for quieter default logs
+//     lines: 191-200, 505-516, and other logs; action: add ReloopBeatmix24.debug flag and guard logs
+
+
+
+
+
+// outline: top-level objects and functions
+// - ReloopBeatmix24 (object)
+//   - properties:
+//     - config
+//     - deckEffectStates
+//     - deckFxAssignments
+//     - fxBussConfig
+//     - id
+//     - deck
+//     - pflStates
+//     - soloMode
+//     - soloedDeck
+//     - savedPflStates
+//     - beatConnections
+//   - functions:
+//     - shouldDisableDeck(deck, unit)
+//     - updateDeckEffectState(deck, unit, slot, value)
+//     - syncEffectStates(deck, unit)
+//     - debugEffectStates()
+//     - addFxBussConfig(name, config)
+//     - getCurrentBussConfig()
+//     - applyFxBussAssignment(deck, assignment)
+//     - cycleFxAssignment(deck, direction)
+//     - debugFxAssignments()
+//     - getDeckFxAssignment(deck)
+//     - setDeckFxAssignment(deck, assignment)
+//     - initializeEffects()
+//     - TurnLEDsOff()
+//     - connectControls()
+//     - init(id, _debug)
+//     - setTwoFxUnitsMode(enabled)
+//     - setFxBussConfig(configName)
+//     - resetAllFxAssignments()
+//     - getFxBussMode()
+//     - getMaxFxAssignment()
+//     - getAllFxCombinations()
+//     - getFxAssignmentDescription(assignment)
+//     - shutdown()
+//     - GetNextRange(previous)
+//     - Range(channel, control, value, status, group)
+//     - MasterSync(channel, control, value, status, group)
+//     - LoopSet(channel, control, value, status, group)
+//     - PitchSlider(channel, control, value, status, group)
+//     - traxSelect(value, step)
+//     - TraxTurn(channel, control, value, _status, _group)
+//     - ShiftTraxTurn(channel, control, value, _status, _group)
+//     - TraxPush(channel, control, value, _status, _group)
+//     - BackButton(channel, control, value, _status, _group)
+//     - LoadButtonEject(group)
+//     - LoadButton(_channel, _control, value, _status, group)
+//     - SamplerPad(channel, control, value, status, group)
+//     - ShiftSamplerPad(channel, control, value, status, group)
+//     - SamplerVol(channel, control, value, _status, _group)
+//     - WheelTouch(channel, control, value, status, group)
+//     - WheelTurn(channel, control, value, status, group)
+//     - AllJogLEDsToggle(deck, state, step)
+//     - deckLoaded(value, group, _control)
+//     - SamplerPlay(value, group, _control)
+//     - loopDefined(value, group, _control)
+//     - ChannelPlay(value, group, _control)
+//     - JogLed(value, group, _control)
+//     - jogLedFlash(group, state)
+//     - FxModeLedFlash(step, mode)
+//     - FxModeCallback(group, mode)
+//     - ActivateFx(_channel, control, value, _status, group)
+//     - registerFxKnobHandlers()
+//     - registerPflHandlers()
+//     - setupBeatFlashing()
+//     - cleanupBeatFlashing()
+//     - PflButton(ch, midino, value, status, group)
+//     - togglePfl(deckIndex)
+//     - ShiftPflButton(ch, midino, value, status, group)
+//     - enterSoloMode(deckIndex)
+//     - exitSoloMode()
+//     - initializePflSystem()
+// - top-level constants/arrays
+//   - RateRangeArray
+//   - jogWheelTimers
+//   - loadButtonTimers
+//   - loadButtonLongPressed
+//   - FxModeTimers
+//   - FxModeLongPressed
+//   - JogLedLit
+//   - channelPlaying
+//   - JogBlinking
+//   - ControllerStatusSysex
+////////////////////////////////////////////////////////////////////////
 // JSHint configuration                                               //
 ////////////////////////////////////////////////////////////////////////
 /* global print                                                       */
