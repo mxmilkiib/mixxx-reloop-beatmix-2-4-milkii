@@ -57,6 +57,8 @@ const JogFlashCriticalTime = 15; // number of seconds to quickly blink at the en
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  ***********************************************************************/
+
+
 ////////////////////////////////////////////////////////////////////////
 // TODOs (pending work not yet tackled)
 // - fx knob mapping comments vs behavior: comments disagree with runtime; align later
@@ -79,9 +81,6 @@ const JogFlashCriticalTime = 15; // number of seconds to quickly blink at the en
 //     lines: 793-801, 876-881, 913-953, 955-977; action: implement helper and use everywhere deck index is parsed
 // - debug controls: gate incidental console.log with a debug flag for quieter default logs
 //     lines: 191-200, 505-516, and other logs; action: add ReloopBeatmix24.debug flag and guard logs
-
-
-
 
 
 // outline: top-level objects and functions
@@ -912,7 +911,6 @@ ReloopBeatmix24.AllJogLEDsToggle = function(deck, state, step) {
     }
 };
 ReloopBeatmix24.deckLoaded = function(value, group, _control) {
-    let i;
     switch (group.substr(1, 7)) {
     case "Channel":
         {
@@ -928,17 +926,6 @@ ReloopBeatmix24.deckLoaded = function(value, group, _control) {
                         JogBaseLed - (JogLedLit[group] + JogLedNumber - 1) %
                         JogLedNumber, OFF);
                     delete JogLedLit[group];
-                    // SHIFT+PAD1 Mode A
-                    midi.sendShortMsg(i, 0x48 - 1 + samplerChan, value ?
-                        RED : OFF);
-                    if (samplerChan <= 4) { // Handle first 4 samplers in split mode
-                    // PAD5 Mode A+B (sampler 1 in split mode)
-                        midi.sendShortMsg(i, 0x14 - 1 + samplerChan, value ?
-                            RED : OFF);
-                        // SHIFT+PAD5 Mode A+B (sampler 1 in split mode)
-                        midi.sendShortMsg(i, 0x1C - 1 + samplerChan, value ?
-                            RED : OFF);
-                    }
                 }
             }
         }

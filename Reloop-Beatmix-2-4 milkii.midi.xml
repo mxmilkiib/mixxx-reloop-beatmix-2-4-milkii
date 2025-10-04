@@ -831,7 +831,46 @@
                     <script-binding/>
                 </options>
             </control>
-
+            <control>
+                <group>[EqualizerRack1_[Channel1]_Effect1]</group>
+                <key>parameter3</key>
+                <description>MIDI Learned from 20 messages.</description>
+                <status>0xB1</status>
+                <midino>0x11</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
+            <control>
+                <group>[EqualizerRack1_[Channel2]_Effect1]</group>
+                <key>parameter3</key>
+                <description>MIDI Learned from 13 messages.</description>
+                <status>0xB2</status>
+                <midino>0x11</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
+            <control>
+                <group>[EqualizerRack1_[Channel3]_Effect1]</group>
+                <key>parameter3</key>
+                <description>MIDI Learned from 12 messages.</description>
+                <status>0xB3</status>
+                <midino>0x11</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
+            <control>
+                <group>[EqualizerRack1_[Channel4]_Effect1]</group>
+                <key>parameter3</key>
+                <description>MIDI Learned from 13 messages.</description>
+                <status>0xB4</status>
+                <midino>0x11</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
             <control>
                 <group>[Sampler3]</group>
                 <key>ReloopBeatmix24.SamplerPad</key>
@@ -872,7 +911,46 @@
                     <script-binding/>
                 </options>
             </control>
-
+            <control>
+                <group>[EqualizerRack1_[Channel1]_Effect1]</group>
+                <key>parameter2</key>
+                <description>MIDI Learned from 41 messages.</description>
+                <status>0xB1</status>
+                <midino>0x12</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
+            <control>
+                <group>[EqualizerRack1_[Channel2]_Effect1]</group>
+                <key>parameter2</key>
+                <description>MIDI Learned from 15 messages.</description>
+                <status>0xB2</status>
+                <midino>0x12</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
+            <control>
+                <group>[EqualizerRack1_[Channel3]_Effect1]</group>
+                <key>parameter2</key>
+                <description>MIDI Learned from 12 messages.</description>
+                <status>0xB3</status>
+                <midino>0x12</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
+            <control>
+                <group>[EqualizerRack1_[Channel4]_Effect1]</group>
+                <key>parameter2</key>
+                <description>MIDI Learned from 14 messages.</description>
+                <status>0xB4</status>
+                <midino>0x12</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
             <control>
                 <group>[Sampler4]</group>
                 <key>ReloopBeatmix24.SamplerPad</key>
@@ -913,7 +991,46 @@
                     <script-binding/>
                 </options>
             </control>
-
+            <control>
+                <group>[EqualizerRack1_[Channel1]_Effect1]</group>
+                <key>parameter1</key>
+                <description>MIDI Learned from 34 messages.</description>
+                <status>0xB1</status>
+                <midino>0x13</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
+            <control>
+                <group>[EqualizerRack1_[Channel2]_Effect1]</group>
+                <key>parameter1</key>
+                <description>MIDI Learned from 13 messages.</description>
+                <status>0xB2</status>
+                <midino>0x13</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
+            <control>
+                <group>[EqualizerRack1_[Channel3]_Effect1]</group>
+                <key>parameter1</key>
+                <description>MIDI Learned from 13 messages.</description>
+                <status>0xB3</status>
+                <midino>0x13</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
+            <control>
+                <group>[EqualizerRack1_[Channel4]_Effect1]</group>
+                <key>parameter1</key>
+                <description>MIDI Learned from 14 messages.</description>
+                <status>0xB4</status>
+                <midino>0x13</midino>
+                <options>
+                    <normal/>
+                </options>
+            </control>
             <control>
                 <group>[Sampler5]</group>
                 <key>ReloopBeatmix24.SamplerPad</key>
@@ -1630,6 +1747,46 @@
                 <description>WHELTOUCH</description>
                 <status>0x94</status>
                 <midino>0x3F</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
+                <group>[Channel1]</group>
+                <key>ReloopBeatmix24.LoadButton</key>
+                <description>LOAD 1</description>
+                <status>0x91</status>
+                <midino>0x50</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
+                <group>[Channel2]</group>
+                <key>ReloopBeatmix24.LoadButton</key>
+                <description>LOAD 2</description>
+                <status>0x92</status>
+                <midino>0x50</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
+                <group>[Channel3]</group>
+                <key>ReloopBeatmix24.LoadButton</key>
+                <description>LOAD 3</description>
+                <status>0x93</status>
+                <midino>0x50</midino>
+                <options>
+                    <script-binding/>
+                </options>
+            </control>
+            <control>
+                <group>[Channel4]</group>
+                <key>ReloopBeatmix24.LoadButton</key>
+                <description>LOAD 4</description>
+                <status>0x94</status>
+                <midino>0x50</midino>
                 <options>
                     <script-binding/>
                 </options>
@@ -1975,7 +2132,9 @@
                 </options>
             </control>
             <control>
-                <midino>0x76</midino>
+                <group></group>
+                <key></key>
+                <status>0x00</status>
                 <options>
                     <script-binding/>
                 </options>
@@ -2016,134 +2175,6 @@
                     <script-binding/>
                 </options>
             </control>
-            
-            <!-- Deck Load Buttons -->
-            <control>
-                <group>[Channel1]</group>
-                <key>ReloopBeatmix24.LoadButton</key>
-                <description>LOAD 1</description>
-                <status>0x91</status>
-                <midino>0x50</midino>
-                <options>
-                    <script-binding/>
-                </options>
-            </control>
-            <control>
-                <group>[Channel2]</group>
-                <key>ReloopBeatmix24.LoadButton</key>
-                <description>LOAD 2</description>
-                <status>0x92</status>
-                <midino>0x50</midino>
-                <options>
-                    <script-binding/>
-                </options>
-            </control>
-            <control>
-                <group>[Channel3]</group>
-                <key>ReloopBeatmix24.LoadButton</key>
-                <description>LOAD 3</description>
-                <status>0x93</status>
-                <midino>0x50</midino>
-                <options>
-                    <script-binding/>
-                </options>
-            </control>
-            <control>
-                <group>[Channel4]</group>
-                <key>ReloopBeatmix24.LoadButton</key>
-                <description>LOAD 4</description>
-                <status>0x94</status>
-                <midino>0x50</midino>
-                <options>
-                    <script-binding/>
-                </options>
-            </control>
-            
-            <!-- PFL buttons handled in JS via midi.makeInputHandler; xml controls disabled
-            <control>
-                <group>[Channel1]</group>
-                <key>ReloopBeatmix24.PflButton</key>
-                <description>PFL 1</description>
-                <status>0x91</status>
-                <midino>0x52</midino>
-                <options>
-                    <script-binding/>
-                </options>
-            </control>
-            <control>
-                <group>[Channel2]</group>
-                <key>ReloopBeatmix24.PflButton</key>
-                <description>PFL 2</description>
-                <status>0x92</status>
-                <midino>0x52</midino>
-                <options>
-                    <script-binding/>
-                </options>
-            </control>
-            <control>
-                <group>[Channel3]</group>
-                <key>ReloopBeatmix24.PflButton</key>
-                <description>PFL 3</description>
-                <status>0x93</status>
-                <midino>0x52</midino>
-                <options>
-                    <script-binding/>
-                </options>
-            </control>
-            <control>
-                <group>[Channel4]</group>
-                <key>ReloopBeatmix24.PflButton</key>
-                <description>PFL 4</description>
-                <status>0x94</status>
-                <midino>0x52</midino>
-                <options>
-                    <script-binding/>
-                </options>
-            </control>
-            -->
-            
-            <!-- shift+pfl buttons handled in JS via midi.makeInputHandler; xml controls disabled
-            <control>
-                <group>[Channel1]</group>
-                <key>ReloopBeatmix24.ShiftPflButton</key>
-                <description>SHIFT+PFL 1 (SOLO)</description>
-                <status>0x91</status>
-                <midino>0x92</midino>
-                <options>
-                    <script-binding/>
-                </options>
-            </control>
-            <control>
-                <group>[Channel2]</group>
-                <key>ReloopBeatmix24.ShiftPflButton</key>
-                <description>SHIFT+PFL 2 (SOLO)</description>
-                <status>0x92</status>
-                <midino>0x92</midino>
-                <options>
-                    <script-binding/>
-                </options>
-            </control>
-            <control>
-                <group>[Channel3]</group>
-                <key>ReloopBeatmix24.ShiftPflButton</key>
-                <description>SHIFT+PFL 3 (SOLO)</description>
-                <status>0x93</status>
-                <midino>0x92</midino>
-                <options>
-                    <script-binding/>
-                </options>
-            </control>
-            <control>
-                <group>[Channel4]</group>
-                <key>ReloopBeatmix24.ShiftPflButton</key>
-                <description>SHIFT+PFL 4 (SOLO)</description>
-                <status>0x94</status>
-                <midino>0x92</midino>
-                <options>
-                    <script-binding/>
-                </options>
-            </control>
-            -->
         </controls>
         <outputs>
             <output>
@@ -2182,29 +2213,21 @@
                 <group>[Channel1]</group>
                 <key>cue_indicator</key>
                 <status>0x91</status>
-                <midino>0x62</midino>
+                <midino>0x22</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
                 <group>[Channel1]</group>
                 <key>cue_indicator</key>
                 <status>0x91</status>
-                <midino>0x22</midino>
+                <midino>0x62</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
                 <group>[Channel1]</group>
                 <key>hotcue_1_status</key>
                 <status>0x91</status>
-                <midino>0x18</midino>
-                <on>0x55</on>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel1]</group>
-                <key>hotcue_1_status</key>
-                <status>0x91</status>
-                <midino>0x40</midino>
+                <midino>0x00</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2220,7 +2243,15 @@
                 <group>[Channel1]</group>
                 <key>hotcue_1_status</key>
                 <status>0x91</status>
-                <midino>0x00</midino>
+                <midino>0x40</midino>
+                <on>0x55</on>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel1]</group>
+                <key>hotcue_1_status</key>
+                <status>0x91</status>
+                <midino>0x18</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2228,15 +2259,7 @@
                 <group>[Channel1]</group>
                 <key>hotcue_2_status</key>
                 <status>0x91</status>
-                <midino>0x19</midino>
-                <on>0x55</on>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel1]</group>
-                <key>hotcue_2_status</key>
-                <status>0x91</status>
-                <midino>0x41</midino>
+                <midino>0x01</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2252,7 +2275,15 @@
                 <group>[Channel1]</group>
                 <key>hotcue_2_status</key>
                 <status>0x91</status>
-                <midino>0x01</midino>
+                <midino>0x41</midino>
+                <on>0x55</on>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel1]</group>
+                <key>hotcue_2_status</key>
+                <status>0x91</status>
+                <midino>0x19</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2260,15 +2291,7 @@
                 <group>[Channel1]</group>
                 <key>hotcue_3_status</key>
                 <status>0x91</status>
-                <midino>0x1A</midino>
-                <on>0x55</on>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel1]</group>
-                <key>hotcue_3_status</key>
-                <status>0x91</status>
-                <midino>0x42</midino>
+                <midino>0x02</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2284,7 +2307,15 @@
                 <group>[Channel1]</group>
                 <key>hotcue_3_status</key>
                 <status>0x91</status>
-                <midino>0x02</midino>
+                <midino>0x42</midino>
+                <on>0x55</on>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel1]</group>
+                <key>hotcue_3_status</key>
+                <status>0x91</status>
+                <midino>0x1A</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2292,15 +2323,7 @@
                 <group>[Channel1]</group>
                 <key>hotcue_4_status</key>
                 <status>0x91</status>
-                <midino>0x1B</midino>
-                <on>0x55</on>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel1]</group>
-                <key>hotcue_4_status</key>
-                <status>0x91</status>
-                <midino>0x43</midino>
+                <midino>0x03</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2316,7 +2339,15 @@
                 <group>[Channel1]</group>
                 <key>hotcue_4_status</key>
                 <status>0x91</status>
-                <midino>0x03</midino>
+                <midino>0x43</midino>
+                <on>0x55</on>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel1]</group>
+                <key>hotcue_4_status</key>
+                <status>0x91</status>
+                <midino>0x1B</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2332,21 +2363,14 @@
                 <group>[Channel1]</group>
                 <key>pfl</key>
                 <status>0x91</status>
-                <midino>0x72</midino>
+                <midino>0x52</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
                 <group>[Channel1]</group>
                 <key>pfl</key>
                 <status>0x91</status>
-                <midino>0x52</midino>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel1]</group>
-                <key>play_indicator</key>
-                <status>0x91</status>
-                <midino>0x63</midino>
+                <midino>0x72</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
@@ -2358,9 +2382,9 @@
             </output>
             <output>
                 <group>[Channel1]</group>
-                <key>sync_enabled</key>
+                <key>play_indicator</key>
                 <status>0x91</status>
-                <midino>0x60</midino>
+                <midino>0x63</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
@@ -2368,6 +2392,13 @@
                 <key>sync_enabled</key>
                 <status>0x91</status>
                 <midino>0x20</midino>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel1]</group>
+                <key>sync_enabled</key>
+                <status>0x91</status>
+                <midino>0x60</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
@@ -2406,29 +2437,21 @@
                 <group>[Channel2]</group>
                 <key>cue_indicator</key>
                 <status>0x92</status>
-                <midino>0x62</midino>
+                <midino>0x22</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
                 <group>[Channel2]</group>
                 <key>cue_indicator</key>
                 <status>0x92</status>
-                <midino>0x22</midino>
+                <midino>0x62</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
                 <group>[Channel2]</group>
                 <key>hotcue_1_status</key>
                 <status>0x92</status>
-                <midino>0x18</midino>
-                <on>0x55</on>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel2]</group>
-                <key>hotcue_1_status</key>
-                <status>0x92</status>
-                <midino>0x40</midino>
+                <midino>0x00</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2444,7 +2467,15 @@
                 <group>[Channel2]</group>
                 <key>hotcue_1_status</key>
                 <status>0x92</status>
-                <midino>0x00</midino>
+                <midino>0x40</midino>
+                <on>0x55</on>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel2]</group>
+                <key>hotcue_1_status</key>
+                <status>0x92</status>
+                <midino>0x18</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2452,15 +2483,7 @@
                 <group>[Channel2]</group>
                 <key>hotcue_2_status</key>
                 <status>0x92</status>
-                <midino>0x19</midino>
-                <on>0x55</on>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel2]</group>
-                <key>hotcue_2_status</key>
-                <status>0x92</status>
-                <midino>0x41</midino>
+                <midino>0x01</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2476,7 +2499,15 @@
                 <group>[Channel2]</group>
                 <key>hotcue_2_status</key>
                 <status>0x92</status>
-                <midino>0x01</midino>
+                <midino>0x41</midino>
+                <on>0x55</on>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel2]</group>
+                <key>hotcue_2_status</key>
+                <status>0x92</status>
+                <midino>0x19</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2484,15 +2515,7 @@
                 <group>[Channel2]</group>
                 <key>hotcue_3_status</key>
                 <status>0x92</status>
-                <midino>0x1A</midino>
-                <on>0x55</on>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel2]</group>
-                <key>hotcue_3_status</key>
-                <status>0x92</status>
-                <midino>0x42</midino>
+                <midino>0x02</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2508,7 +2531,15 @@
                 <group>[Channel2]</group>
                 <key>hotcue_3_status</key>
                 <status>0x92</status>
-                <midino>0x02</midino>
+                <midino>0x42</midino>
+                <on>0x55</on>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel2]</group>
+                <key>hotcue_3_status</key>
+                <status>0x92</status>
+                <midino>0x1A</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2516,15 +2547,7 @@
                 <group>[Channel2]</group>
                 <key>hotcue_4_status</key>
                 <status>0x92</status>
-                <midino>0x1B</midino>
-                <on>0x55</on>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel2]</group>
-                <key>hotcue_4_status</key>
-                <status>0x92</status>
-                <midino>0x43</midino>
+                <midino>0x03</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2540,7 +2563,15 @@
                 <group>[Channel2]</group>
                 <key>hotcue_4_status</key>
                 <status>0x92</status>
-                <midino>0x03</midino>
+                <midino>0x43</midino>
+                <on>0x55</on>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel2]</group>
+                <key>hotcue_4_status</key>
+                <status>0x92</status>
+                <midino>0x1B</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2556,21 +2587,14 @@
                 <group>[Channel2]</group>
                 <key>pfl</key>
                 <status>0x92</status>
-                <midino>0x72</midino>
+                <midino>0x52</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
                 <group>[Channel2]</group>
                 <key>pfl</key>
                 <status>0x92</status>
-                <midino>0x52</midino>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel2]</group>
-                <key>play_indicator</key>
-                <status>0x92</status>
-                <midino>0x63</midino>
+                <midino>0x72</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
@@ -2582,9 +2606,9 @@
             </output>
             <output>
                 <group>[Channel2]</group>
-                <key>sync_enabled</key>
+                <key>play_indicator</key>
                 <status>0x92</status>
-                <midino>0x60</midino>
+                <midino>0x63</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
@@ -2592,6 +2616,13 @@
                 <key>sync_enabled</key>
                 <status>0x92</status>
                 <midino>0x20</midino>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel2]</group>
+                <key>sync_enabled</key>
+                <status>0x92</status>
+                <midino>0x60</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
@@ -2630,29 +2661,21 @@
                 <group>[Channel3]</group>
                 <key>cue_indicator</key>
                 <status>0x93</status>
-                <midino>0x62</midino>
+                <midino>0x22</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
                 <group>[Channel3]</group>
                 <key>cue_indicator</key>
                 <status>0x93</status>
-                <midino>0x22</midino>
+                <midino>0x62</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
                 <group>[Channel3]</group>
                 <key>hotcue_1_status</key>
                 <status>0x93</status>
-                <midino>0x18</midino>
-                <on>0x55</on>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel3]</group>
-                <key>hotcue_1_status</key>
-                <status>0x93</status>
-                <midino>0x40</midino>
+                <midino>0x00</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2668,7 +2691,15 @@
                 <group>[Channel3]</group>
                 <key>hotcue_1_status</key>
                 <status>0x93</status>
-                <midino>0x00</midino>
+                <midino>0x40</midino>
+                <on>0x55</on>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel3]</group>
+                <key>hotcue_1_status</key>
+                <status>0x93</status>
+                <midino>0x18</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2676,15 +2707,7 @@
                 <group>[Channel3]</group>
                 <key>hotcue_2_status</key>
                 <status>0x93</status>
-                <midino>0x19</midino>
-                <on>0x55</on>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel3]</group>
-                <key>hotcue_2_status</key>
-                <status>0x93</status>
-                <midino>0x41</midino>
+                <midino>0x01</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2700,7 +2723,15 @@
                 <group>[Channel3]</group>
                 <key>hotcue_2_status</key>
                 <status>0x93</status>
-                <midino>0x01</midino>
+                <midino>0x41</midino>
+                <on>0x55</on>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel3]</group>
+                <key>hotcue_2_status</key>
+                <status>0x93</status>
+                <midino>0x19</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2708,15 +2739,7 @@
                 <group>[Channel3]</group>
                 <key>hotcue_3_status</key>
                 <status>0x93</status>
-                <midino>0x1A</midino>
-                <on>0x55</on>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel3]</group>
-                <key>hotcue_3_status</key>
-                <status>0x93</status>
-                <midino>0x42</midino>
+                <midino>0x02</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2732,7 +2755,15 @@
                 <group>[Channel3]</group>
                 <key>hotcue_3_status</key>
                 <status>0x93</status>
-                <midino>0x02</midino>
+                <midino>0x42</midino>
+                <on>0x55</on>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel3]</group>
+                <key>hotcue_3_status</key>
+                <status>0x93</status>
+                <midino>0x1A</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2740,15 +2771,7 @@
                 <group>[Channel3]</group>
                 <key>hotcue_4_status</key>
                 <status>0x93</status>
-                <midino>0x1B</midino>
-                <on>0x55</on>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel3]</group>
-                <key>hotcue_4_status</key>
-                <status>0x93</status>
-                <midino>0x43</midino>
+                <midino>0x03</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2764,7 +2787,15 @@
                 <group>[Channel3]</group>
                 <key>hotcue_4_status</key>
                 <status>0x93</status>
-                <midino>0x03</midino>
+                <midino>0x43</midino>
+                <on>0x55</on>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel3]</group>
+                <key>hotcue_4_status</key>
+                <status>0x93</status>
+                <midino>0x1B</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2780,21 +2811,14 @@
                 <group>[Channel3]</group>
                 <key>pfl</key>
                 <status>0x93</status>
-                <midino>0x72</midino>
+                <midino>0x52</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
                 <group>[Channel3]</group>
                 <key>pfl</key>
                 <status>0x93</status>
-                <midino>0x52</midino>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel3]</group>
-                <key>play_indicator</key>
-                <status>0x93</status>
-                <midino>0x63</midino>
+                <midino>0x72</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
@@ -2806,9 +2830,9 @@
             </output>
             <output>
                 <group>[Channel3]</group>
-                <key>sync_enabled</key>
+                <key>play_indicator</key>
                 <status>0x93</status>
-                <midino>0x60</midino>
+                <midino>0x63</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
@@ -2816,6 +2840,13 @@
                 <key>sync_enabled</key>
                 <status>0x93</status>
                 <midino>0x20</midino>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel3]</group>
+                <key>sync_enabled</key>
+                <status>0x93</status>
+                <midino>0x60</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
@@ -2854,29 +2885,21 @@
                 <group>[Channel4]</group>
                 <key>cue_indicator</key>
                 <status>0x94</status>
-                <midino>0x62</midino>
+                <midino>0x22</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
                 <group>[Channel4]</group>
                 <key>cue_indicator</key>
                 <status>0x94</status>
-                <midino>0x22</midino>
+                <midino>0x62</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
                 <group>[Channel4]</group>
                 <key>hotcue_1_status</key>
                 <status>0x94</status>
-                <midino>0x18</midino>
-                <on>0x55</on>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel4]</group>
-                <key>hotcue_1_status</key>
-                <status>0x94</status>
-                <midino>0x40</midino>
+                <midino>0x00</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2892,7 +2915,15 @@
                 <group>[Channel4]</group>
                 <key>hotcue_1_status</key>
                 <status>0x94</status>
-                <midino>0x00</midino>
+                <midino>0x40</midino>
+                <on>0x55</on>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel4]</group>
+                <key>hotcue_1_status</key>
+                <status>0x94</status>
+                <midino>0x18</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2900,15 +2931,7 @@
                 <group>[Channel4]</group>
                 <key>hotcue_2_status</key>
                 <status>0x94</status>
-                <midino>0x19</midino>
-                <on>0x55</on>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel4]</group>
-                <key>hotcue_2_status</key>
-                <status>0x94</status>
-                <midino>0x41</midino>
+                <midino>0x01</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2924,7 +2947,15 @@
                 <group>[Channel4]</group>
                 <key>hotcue_2_status</key>
                 <status>0x94</status>
-                <midino>0x01</midino>
+                <midino>0x41</midino>
+                <on>0x55</on>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel4]</group>
+                <key>hotcue_2_status</key>
+                <status>0x94</status>
+                <midino>0x19</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2932,15 +2963,7 @@
                 <group>[Channel4]</group>
                 <key>hotcue_3_status</key>
                 <status>0x94</status>
-                <midino>0x1A</midino>
-                <on>0x55</on>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel4]</group>
-                <key>hotcue_3_status</key>
-                <status>0x94</status>
-                <midino>0x42</midino>
+                <midino>0x02</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2956,7 +2979,15 @@
                 <group>[Channel4]</group>
                 <key>hotcue_3_status</key>
                 <status>0x94</status>
-                <midino>0x02</midino>
+                <midino>0x42</midino>
+                <on>0x55</on>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel4]</group>
+                <key>hotcue_3_status</key>
+                <status>0x94</status>
+                <midino>0x1A</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2964,15 +2995,7 @@
                 <group>[Channel4]</group>
                 <key>hotcue_4_status</key>
                 <status>0x94</status>
-                <midino>0x1B</midino>
-                <on>0x55</on>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel4]</group>
-                <key>hotcue_4_status</key>
-                <status>0x94</status>
-                <midino>0x43</midino>
+                <midino>0x03</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -2988,7 +3011,15 @@
                 <group>[Channel4]</group>
                 <key>hotcue_4_status</key>
                 <status>0x94</status>
-                <midino>0x03</midino>
+                <midino>0x43</midino>
+                <on>0x55</on>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[Channel4]</group>
+                <key>hotcue_4_status</key>
+                <status>0x94</status>
+                <midino>0x1B</midino>
                 <on>0x55</on>
                 <minimum>0.1</minimum>
             </output>
@@ -3004,21 +3035,14 @@
                 <group>[Channel4]</group>
                 <key>pfl</key>
                 <status>0x94</status>
-                <midino>0x72</midino>
+                <midino>0x52</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
                 <group>[Channel4]</group>
                 <key>pfl</key>
                 <status>0x94</status>
-                <midino>0x52</midino>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[Channel4]</group>
-                <key>play_indicator</key>
-                <status>0x94</status>
-                <midino>0x63</midino>
+                <midino>0x72</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
@@ -3030,9 +3054,9 @@
             </output>
             <output>
                 <group>[Channel4]</group>
-                <key>sync_enabled</key>
+                <key>play_indicator</key>
                 <status>0x94</status>
-                <midino>0x60</midino>
+                <midino>0x63</midino>
                 <minimum>0.1</minimum>
             </output>
             <output>
@@ -3043,6 +3067,20 @@
                 <minimum>0.1</minimum>
             </output>
             <output>
+                <group>[Channel4]</group>
+                <key>sync_enabled</key>
+                <status>0x94</status>
+                <midino>0x60</midino>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[EffectRack1_EffectUnit1]</group>
+                <key>group_[Channel1]_enable</key>
+                <status>0x91</status>
+                <midino>0x25</midino>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
                 <group>[EffectRack1_EffectUnit1]</group>
                 <key>group_[Channel1]_enable</key>
                 <status>0x91</status>
@@ -3051,8 +3089,8 @@
             </output>
             <output>
                 <group>[EffectRack1_EffectUnit1]</group>
-                <key>group_[Channel1]_enable</key>
-                <status>0x91</status>
+                <key>group_[Channel2]_enable</key>
+                <status>0x92</status>
                 <midino>0x25</midino>
                 <minimum>0.1</minimum>
             </output>
@@ -3065,8 +3103,8 @@
             </output>
             <output>
                 <group>[EffectRack1_EffectUnit1]</group>
-                <key>group_[Channel2]_enable</key>
-                <status>0x92</status>
+                <key>group_[Channel3]_enable</key>
+                <status>0x93</status>
                 <midino>0x25</midino>
                 <minimum>0.1</minimum>
             </output>
@@ -3079,8 +3117,8 @@
             </output>
             <output>
                 <group>[EffectRack1_EffectUnit1]</group>
-                <key>group_[Channel3]_enable</key>
-                <status>0x93</status>
+                <key>group_[Channel4]_enable</key>
+                <status>0x94</status>
                 <midino>0x25</midino>
                 <minimum>0.1</minimum>
             </output>
@@ -3092,20 +3130,6 @@
                 <minimum>0.1</minimum>
             </output>
             <output>
-                <group>[EffectRack1_EffectUnit1]</group>
-                <key>group_[Channel4]_enable</key>
-                <status>0x94</status>
-                <midino>0x25</midino>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
-                <group>[EffectRack1_EffectUnit2]</group>
-                <key>group_[Channel1]_enable</key>
-                <status>0x91</status>
-                <midino>0x64</midino>
-                <minimum>0.1</minimum>
-            </output>
-            <output>
                 <group>[EffectRack1_EffectUnit2]</group>
                 <key>group_[Channel1]_enable</key>
                 <status>0x91</status>
@@ -3114,8 +3138,8 @@
             </output>
             <output>
                 <group>[EffectRack1_EffectUnit2]</group>
-                <key>group_[Channel2]_enable</key>
-                <status>0x92</status>
+                <key>group_[Channel1]_enable</key>
+                <status>0x91</status>
                 <midino>0x64</midino>
                 <minimum>0.1</minimum>
             </output>
@@ -3128,8 +3152,8 @@
             </output>
             <output>
                 <group>[EffectRack1_EffectUnit2]</group>
-                <key>group_[Channel3]_enable</key>
-                <status>0x93</status>
+                <key>group_[Channel2]_enable</key>
+                <status>0x92</status>
                 <midino>0x64</midino>
                 <minimum>0.1</minimum>
             </output>
@@ -3142,8 +3166,8 @@
             </output>
             <output>
                 <group>[EffectRack1_EffectUnit2]</group>
-                <key>group_[Channel4]_enable</key>
-                <status>0x94</status>
+                <key>group_[Channel3]_enable</key>
+                <status>0x93</status>
                 <midino>0x64</midino>
                 <minimum>0.1</minimum>
             </output>
@@ -3152,6 +3176,13 @@
                 <key>group_[Channel4]_enable</key>
                 <status>0x94</status>
                 <midino>0x24</midino>
+                <minimum>0.1</minimum>
+            </output>
+            <output>
+                <group>[EffectRack1_EffectUnit2]</group>
+                <key>group_[Channel4]_enable</key>
+                <status>0x94</status>
+                <midino>0x64</midino>
                 <minimum>0.1</minimum>
             </output>
         </outputs>
