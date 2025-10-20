@@ -182,7 +182,8 @@ var ReloopBeatmix24 = {};
 
 // Configuration for FX handling
 ReloopBeatmix24.config = {
-    twoFxUnitsMode: false        // false = 4 FX busses, true = 2 FX busses
+    twoFxUnitsMode: false,       // false = 4 FX busses, true = 2 FX busses
+    initializingController: true // prevent overwriting saved states during controller sync
 };
 
 /*
@@ -254,12 +255,12 @@ ReloopBeatmix24.updateDeckEffectState = function(deck, unit, slot, value) {
     console.log(`Deck ${deck} Effect ${slot} updated to ${value.toFixed(3)}`);
 };
 
-// Helper function to read current effect states and update tracking
+// read current effect states and update internal tracking (no bus assignment writes)
 ReloopBeatmix24.syncEffectStates = function(deck, unit) {
     const unitGroup = `[EffectRack1_EffectUnit${unit}]`;
     const deckGroup = `[Channel${deck}]`;
     
-    // Read current meta knob values for all effects
+    // read current meta knob values for all effects
     for (let slot = 1; slot <= 3; slot++) {
         const effectGroup = `[EffectRack1_EffectUnit${unit}_Effect${slot}]`;
         const effectLoaded = engine.getValue(effectGroup, "loaded");
@@ -271,12 +272,8 @@ ReloopBeatmix24.syncEffectStates = function(deck, unit) {
         }
     }
     
-    // Update deck enable state based on current effect states
-    if (ReloopBeatmix24.shouldDisableDeck(deck, unit)) {
-        engine.setValue(unitGroup, `group_${deckGroup}_enable`, 0);
-    } else {
-        engine.setValue(unitGroup, `group_${deckGroup}_enable`, 1);
-    }
+    // note: we do NOT modify deck enable state here to avoid overwriting user's bus assignments
+    // the controller script only tracks state, it doesn't control which busses are enabled
 };
 
 // Debug function to show current effect states
@@ -330,64 +327,61 @@ ReloopBeatmix24.getCurrentBussConfig = function() {
         ReloopBeatmix24.fxBussConfig.fourBuss;
 };
 
-// Apply FX buss assignment to engine
-// ReloopBeatmix24.applyFxBussAssignment = function(deck, assignment) {
-//     const config = ReloopBeatmix24.getCurrentBussConfig();
-//     const deckGroup = `[Channel${deck}]`;
+// track fx buss assignment (read-only, no writes to mixxx)
+ReloopBeatmix24.applyFxBussAssignment = function(deck, assignment) {
+    const config = ReloopBeatmix24.getCurrentBussConfig();
+    const deckGroup = `[Channel${deck}]`;
     
-//     // Apply each buss assignment
-//     config.busses.forEach(buss => {
-//         const enabled = (assignment & buss.bit) ? 1 : 0;
-//         engine.setValue(buss.unit, `group_${deckGroup}_enable`, enabled);
-//     });
+    // note: we do NOT call engine.setValue here to avoid overwriting user's bus assignments
+    // this function only returns the assignment state for tracking/logging
     
-//     return config.busses.map(buss => ({
-//         id: buss.id,
-//         enabled: (assignment & buss.bit) ? 1 : 0
-//     }));
-// };
+    return config.busses.map(buss => ({
+        id: buss.id,
+        enabled: (assignment & buss.bit) ? 1 : 0
+    }));
+};
 
-// Helper function to cycle through FX buss assignments
-// ReloopBeatmix24.cycleFxAssignment = function(deck, direction) {
-//     const config = ReloopBeatmix24.getCurrentBussConfig();
-//     const current = ReloopBeatmix24.deckFxAssignments[deck];
+// cycle through fx buss assignments (tracking only, no writes to mixxx)
+ReloopBeatmix24.cycleFxAssignment = function(deck, direction) {
+    const config = ReloopBeatmix24.getCurrentBussConfig();
+    const current = ReloopBeatmix24.deckFxAssignments[deck];
     
-//     // Calculate new value with wraparound
-//     let newValue;
-//     if (direction > 0) {
-//         newValue = (current + 1) % (config.maxValue + 1);
-//     } else {
-//         newValue = (current - 1 + (config.maxValue + 1)) % (config.maxValue + 1);
-//     }
+    // calculate new value with wraparound
+    let newValue;
+    if (direction > 0) {
+        newValue = (current + 1) % (config.maxValue + 1);
+    } else {
+        newValue = (current - 1 + (config.maxValue + 1)) % (config.maxValue + 1);
+    }
     
-//     // Update assignment and apply to engine
-//     ReloopBeatmix24.deckFxAssignments[deck] = newValue;
-//     // const bussStates = ReloopBeatmix24.applyFxBussAssignment(deck, newValue);
+    // update internal tracking only (no engine.setValue calls)
+    ReloopBeatmix24.deckFxAssignments[deck] = newValue;
+    const bussStates = ReloopBeatmix24.applyFxBussAssignment(deck, newValue);
     
-//     // Generate debug output
-//     const binary = newValue.toString(2).padStart(config.bussCount, '0');
-//     const bussInfo = bussStates.map(buss => `FX Buss ${buss.id}:${buss.enabled}`).join(', ');
-//     console.log(`Deck ${deck} FX Assignment: ${newValue} (binary: ${binary}) - ${bussInfo}`);
+    // generate debug output
+    const binary = newValue.toString(2).padStart(config.bussCount, '0');
+    const bussInfo = bussStates.map(buss => `FX Buss ${buss.id}:${buss.enabled}`).join(', ');
+    console.log(`deck ${deck} fx assignment tracked: ${newValue} (binary: ${binary}) - ${bussInfo}`);
     
-//     return newValue;
-// };
+    return newValue;
+};
 
-// Debug function to show current FX buss assignments
-// ReloopBeatmix24.debugFxAssignments = function() {
-//     const config = ReloopBeatmix24.getCurrentBussConfig();
-//     console.log(`Current FX Buss Assignments (${config.bussCount} buss mode):`);
+// debug function to show current fx buss assignments
+ReloopBeatmix24.debugFxAssignments = function() {
+    const config = ReloopBeatmix24.getCurrentBussConfig();
+    console.log(`current fx buss assignments (${config.bussCount} buss mode):`);
     
-//     for (let deck = 1; deck <= 4; deck++) {
-//         const assignment = ReloopBeatmix24.deckFxAssignments[deck];
-//         const binary = assignment.toString(2).padStart(config.bussCount, '0');
+    for (let deck = 1; deck <= 4; deck++) {
+        const assignment = ReloopBeatmix24.deckFxAssignments[deck];
+        const binary = assignment.toString(2).padStart(config.bussCount, '0');
         
-//         const bussStates = config.busses.map(buss => 
-//             `FX Buss ${buss.id}:${(assignment & buss.bit) ? 'ON' : 'OFF'}`
-//         ).join(', ');
+        const bussStates = config.busses.map(buss => 
+            `fx buss ${buss.id}:${(assignment & buss.bit) ? 'on' : 'off'}`
+        ).join(', ');
         
-//         console.log(`Deck ${deck}: ${assignment} (binary: ${binary}) - ${bussStates}`);
-//     }
-// };
+        console.log(`deck ${deck}: ${assignment} (binary: ${binary}) - ${bussStates}`);
+    }
+};
 
 // Get current FX assignment for a specific deck
 ReloopBeatmix24.getDeckFxAssignment = function(deck) {
@@ -643,6 +637,10 @@ ReloopBeatmix24.init = function(id, _debug) {
             } catch (e) {
                 console.log(`error syncing fx send states: ${e.message}`);
             }
+            
+            // enable fx knob handlers now that controller sync is complete
+            ReloopBeatmix24.config.initializingController = false;
+            console.log('fx knob handlers enabled, saved states preserved');
 
         }, true);
     console.log(`Reloop Beatmix: ${ id } initialized.`);
@@ -675,11 +673,11 @@ ReloopBeatmix24.init = function(id, _debug) {
 //     return false;
 // };
 
-// Reset all FX assignments to 0
+// reset all fx assignments to 0 (tracking only)
 ReloopBeatmix24.resetAllFxAssignments = function() {
     for (let deck = 1; deck <= 4; deck++) {
         ReloopBeatmix24.deckFxAssignments[deck] = 0;
-        ReloopBeatmix24.cycleFxAssignment(deck, 0); // Apply the reset
+        ReloopBeatmix24.cycleFxAssignment(deck, 0); // track the reset
     }
 };
 
@@ -1181,6 +1179,11 @@ ReloopBeatmix24.registerFxKnobHandlers = function() {
 
     // Helper to process FX knob turns
     const processFxKnob = function(unit, slot, deck, value, control) {
+        // skip processing during controller initialization to preserve saved states
+        if (ReloopBeatmix24.config.initializingController) {
+            return;
+        }
+        
         const norm = script.absoluteLin(value, 0, 1);
         // Use the proper effects framework structure - each knob controls a different effect slot
         const effectGroup = `[EffectRack1_EffectUnit${unit}_Effect${slot}]`;
